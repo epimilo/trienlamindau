@@ -25,8 +25,10 @@ const artifactContent = {
     title: "Dòng thời gian đại dịch COVID tại Việt Nam",
     subtitle: "Biểu đồ thời gian ghi lại những biến động và tinh thần kiên cường trong đại dịch.",
     body: [
-      "Dòng thời gian của Đại dịch COVID-19 ở Việt Nam được tái hiện qua những mốc thời gian cụ thể. Biểu đồ thời gian này không chỉ ghi lại những biến động, thách thức chưa từng có của xã hội và ngành báo chí, mà còn ghi lại những cột mốc vô giá về tinh thần kiên cường, nỗ lực thích ứng của con người trong đại dịch."
-    ]
+      "Dòng thời gian của Đại dịch COVID-19 ở Việt Nam được tái hiện qua những mốc thời gian cụ thể. Biểu đồ thời gian này không chỉ ghi lại những biến động, thách thức chưa từng có của xã hội và ngành báo chí, mà còn ghi lại những cột mốc vô giá về tinh thần kiên cường, nỗ lực thích ứng của con người trong đại dịch.",
+      '<button type="button" class="button infographic-btn" data-action="open-infographic">Xem infographic</button>'
+    ],
+    image: "./images/dong-thoi-gian.jpg"
   },
   archive: {
     tag: "Lưu vật",
@@ -1167,16 +1169,74 @@ function renderArtifact(key) {
     artifactSubtitle.style.display = "none";
   }
   const bodyHtml = item.body.map(p => `<p>${p}</p>`).join("");
-  const imageHtml = item.image
+  const imageHtml = item.image && !item.body.some(p => p.includes('infographic-btn'))
     ? `<figure class="artifact-figure"><img src="${item.image}" alt="${item.title}" loading="lazy"></figure>`
     : "";
   artifactBody.innerHTML       = bodyHtml + imageHtml;
   artifactPanel.classList.remove("overlay--hidden");
   markExplored(key);
+
+  /* Bind infographic button if present */
+  const infographicBtn = artifactBody.querySelector('.infographic-btn');
+  if (infographicBtn && item.image) {
+    infographicBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openInfographic(item.image, item.title);
+    });
+  }
 }
 
 function closeArtifact() {
   artifactPanel.classList.add("overlay--hidden");
+}
+
+/* ── INFOGRAPHIC LIGHTBOX ── */
+function openInfographic(imageSrc, title) {
+  let overlay = document.getElementById('infographicOverlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'infographicOverlay';
+    overlay.className = 'infographic-overlay';
+    overlay.setAttribute('role', 'dialog');
+    overlay.setAttribute('aria-modal', 'true');
+    overlay.innerHTML = `
+      <div class="infographic-overlay__backdrop" data-close="infographic"></div>
+      <div class="infographic-overlay__container">
+        <div class="infographic-overlay__toolbar">
+          <p class="eyebrow">Infographic</p>
+          <h2 class="infographic-overlay__title"></h2>
+          <button type="button" class="icon-button" data-close="infographic" aria-label="Đóng infographic">×</button>
+        </div>
+        <div class="infographic-overlay__scroll">
+          <img class="infographic-overlay__img" alt="Infographic" />
+        </div>
+      </div>`;
+    document.body.appendChild(overlay);
+
+    /* Close on click backdrop or button */
+    overlay.querySelectorAll('[data-close="infographic"]').forEach(el => {
+      el.addEventListener('click', () => closeInfographic());
+    });
+    /* Close on Escape */
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && overlay.classList.contains('is-visible')) {
+        closeInfographic();
+      }
+    });
+  }
+  overlay.querySelector('.infographic-overlay__title').textContent = title || 'Infographic';
+  const img = overlay.querySelector('.infographic-overlay__img');
+  img.src = imageSrc;
+  img.alt = title || 'Infographic';
+  overlay.classList.add('is-visible');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeInfographic() {
+  const overlay = document.getElementById('infographicOverlay');
+  if (!overlay) return;
+  overlay.classList.remove('is-visible');
+  document.body.style.overflow = '';
 }
 
 /* ════════════════════════════════════════

@@ -1068,3 +1068,167 @@ body.is-guide-mode .cursor-ring {
 .hud__actions .button[data-action="return-home"]:focus-visible {
   background: rgba(255,255,255,.13);
 }
+
+/* ── INFOGRAPHIC BUTTON inside artifact panel ── */
+.infographic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 0.6rem;
+  padding: 10px 22px;
+  background: linear-gradient(135deg, #8b5e3c 0%, #6b4226 100%);
+  color: #f4e8d1;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.22s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+.infographic-btn:hover {
+  background: linear-gradient(135deg, #a06e42 0%, #7d4f30 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+}
+.infographic-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+.infographic-btn::before {
+  content: "📊";
+  font-size: 1.05em;
+}
+
+/* ── INFOGRAPHIC LIGHTBOX OVERLAY ── */
+.infographic-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.32s ease, visibility 0.32s ease;
+}
+.infographic-overlay.is-visible {
+  opacity: 1;
+  visibility: visible;
+}
+.infographic-overlay__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor: pointer;
+}
+.infographic-overlay__container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  width: 92vw;
+  max-width: 1100px;
+  height: 88vh;
+  background: rgba(30, 25, 20, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 12px 48px rgba(0, 0, 0, 0.5);
+  transform: scale(0.92) translateY(20px);
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.infographic-overlay.is-visible .infographic-overlay__container {
+  transform: scale(1) translateY(0);
+}
+.infographic-overlay__toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+.infographic-overlay__toolbar .eyebrow {
+  margin: 0;
+  font-size: 0.72rem;
+  color: #b38e5f;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.infographic-overlay__title {
+  flex: 1;
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #f4e8d1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.infographic-overlay__toolbar .icon-button {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #ccc;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.infographic-overlay__toolbar .icon-button:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+}
+.infographic-overlay__scroll {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  -webkit-overflow-scrolling: touch;
+}
+.infographic-overlay__scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.infographic-overlay__scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.infographic-overlay__scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+.infographic-overlay__img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .infographic-overlay__container {
+    width: 97vw;
+    height: 92vh;
+    border-radius: 10px;
+  }
+  .infographic-overlay__toolbar {
+    padding: 10px 14px;
+  }
+  .infographic-overlay__title {
+    font-size: 0.9rem;
+  }
+  .infographic-overlay__scroll {
+    padding: 12px;
+  }
+}
