@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tờ Báo — Viet Nam News & Covid-19</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  @font-face {
+    font-family: "Kefa III";
+    src: url("./fonts/KefaIII.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+  }
+  @font-face {
+    font-family: "Kefa III";
+    src: url("./fonts/KefaIII-Bold.ttf") format("truetype");
+    font-weight: bold;
+    font-style: normal;
+  }
+
+  :root {
+    --paper: #f5efe0;
+    --paper-dark: #e8dfc8;
+    --ink: #1a1208;
+    --ink-light: #3d2e12;
+    --red: #8b1a1a;
+    --red-dark: #5c0f0f;
+    --rule: #1a1208;
+    --muted: #6b5a3e;
+  }
+
+  body {
+    background: #2a2218;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 2rem 1rem 4rem;
+    font-family: 'Kefa III', Georgia, serif;
+  }
+
+  /* ── NEWSPAPER WRAPPER ── */
+  .newspaper {
+    width: 100%;
+    max-width: 900px;
+    background: var(--paper);
+    position: relative;
+    box-shadow: 0 8px 60px rgba(0,0,0,0.7), inset 0 0 80px rgba(0,0,0,0.06);
+  }
+
+  /* Paper texture overlay */
+  .newspaper::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+    opacity: 0.6;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .newspaper-inner {
+    position: relative;
+    z-index: 2;
+    padding: 0;
+  }
+
+  /* ── HEADER ── */
+  .paper-header {
+    border-bottom: 3px double var(--rule);
+    padding: 0.6rem 1.5rem 0.4rem;
+  }
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    letter-spacing: 0.05em;
+    color: var(--ink-light);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.3rem;
+    margin-bottom: 0.4rem;
+  }
+
+  .masthead {
+    text-align: center;
+    padding: 0.5rem 0 0.3rem;
+    cursor: pointer;
+    position: relative;
+  }
+  .masthead:hover .hotspot-ring { opacity: 1; transform: scale(1); }
+
+  .paper-name {
+    font-family: 'Kefa III', Georgia, serif;
+    font-size: 3.8rem;
+    line-height: 1;
+    color: #1a3a6b;
+    letter-spacing: -0.01em;
+  }
+
+  .paper-tagline {
+    font-family: 'Kefa III', Georgia, serif;
+    font-style: italic;
+    font-size: 0.82rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    margin-top: 2px;
+  }
+
+  /* ── RED BANNER ── */
+  .red-banner {
+    background: var(--red);
+    color: #f5efe0;
+    text-align: center;
+    padding: 0.35rem;
+    font-family: 'Kefa III', Georgia, serif;
+    font-weight: 600;
+    font-size: 0.78rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ── MAIN CONTENT AREA ── */
+  .content-area {
+    display: grid;
+    grid-template-columns: 1fr 2px 2fr 2px 1fr;
+    gap: 0;
+    padding: 0.8rem 1rem;
+    border-bottom: 2px solid var(--rule);
+  }
+
+  .col-rule {
+    background: var(--rule);
+    opacity: 0.25;
+    margin: 0 0.6rem;
+  }
+
+  /* ── COLUMN STYLES ── */
+  .col { padding: 0 0.5rem; }
+
+  .col-headline {
+    font-family: 'Kefa III', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.55rem;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 0.5rem;
+  }
+
+  .col-subhead {
+    font-family: 'Kefa III', Georgia, serif;
+    font-weight: 400;
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--ink-light);
+    margin-bottom: 0.6rem;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 0.4rem;
+  }
+
+  .section-label {
+    font-size: 0.62rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+    font-family: 'Kefa III', Georgia, serif;
+  }
+
+  .col-body {
+    font-size: 0.82rem;
+    line-height: 1.65;
+    color: var(--ink);
+    text-align: justify;
+    hyphens: auto;
+  }
+
+  .col-body p + p { margin-top: 0.5em; }
+
+  .dropcap::first-letter {
+    float: left;
+    font-family: 'Kefa III', Georgia, serif;
+    font-size: 3.2em;
+    font-weight: 700;
+    line-height: 0.75;
+    margin: 0.05em 0.06em 0 0;
+    color: var(--ink);
+  }
+
+  /* ── PHOTO PLACEHOLDER ── */
+  .photo-block {
+    margin: 0.6rem 0;
+    position: relative;
+    cursor: pointer;
+  }
+  .photo-block:hover .hotspot-ring { opacity: 1; transform: scale(1); }
+
+  .photo-placeholder {
+    width: 100%;
+    height: 160px;
+    background: linear-gradient(135deg, #c8b89a 0%, #a8956e 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 6px;
+    border: 1px solid #8a7555;
+  }
+
+  .photo-placeholder svg { opacity: 0.4; }
+
+  .photo-caption {
+    font-size: 0.68rem;
+    font-style: italic;
+    color: var(--muted);
+    margin-top: 0.25rem;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  /* ── AD BLOCK ── */
+  .ad-block {
+    border: 1px solid var(--rule);
+    padding: 0.6rem;
+    margin-top: 0.5rem;
+    text-align: center;
+    cursor: pointer;
+    position: relative;
+  }
+  .ad-block:hover .hotspot-ring { opacity: 1; transform: scale(1); }
+
+  .ad-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.3rem;
+  }
+  .ad-title {
+    font-family: 'Kefa III', Georgia, serif;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--red);
+  }
+  .ad-body {
+    font-size: 0.72rem;
+    color: var(--ink-light);
+    margin-top: 0.2rem;
+    line-height: 1.4;
+  }
+
+  /* ── LOWER HEADLINE (used inside columns) ── */
+
+  .lower-headline {
+    font-family: 'Kefa III', Georgia, serif;
+    font-weight: 700;
+    font-size: 0.92rem;
+    line-height: 1.2;
+    color: var(--ink);
+    margin-bottom: 0.3rem;
+    cursor: pointer;
+    position: relative;
+  }
+  .lower-headline:hover .hotspot-ring { opacity: 1; transform: scale(1); }
+
+  /* ── FOOTER ── */
+  .paper-footer {
+    padding: 0.35rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+    border-top: 1px solid var(--muted);
+  }
+
+  /* ── HOTSPOT INDICATORS ── */
+  .hotspot-ring {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%) scale(0.85);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 2px solid var(--red);
+    background: rgba(139,26,26,0.15);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  .hotspot-ring::after {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--red);
+  }
+
+  /* Pulsing dots on always-visible hotspots */
+  .hotspot-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s ease-in-out infinite;
+    vertical-align: middle;
+    margin-left: 5px;
+    cursor: pointer;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.4; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.3); }
+  }
+
+  /* Clickable highlight */
+  .clickable {
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .clickable:hover { background: rgba(139,26,26,0.06); }
+
+  /* ── PANEL OVERLAY ── */
+  .overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,18,8,0.65);
+    z-index: 100;
+    display: flex;
+    align-items: stretch;
+    justify-content: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .overlay.open {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .panel {
+    width: min(480px, 95vw);
+    background: #f9f4e8;
+    height: 100%;
+    overflow-y: auto;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16,1,0.3,1);
+    display: flex;
+    flex-direction: column;
+    box-shadow: -8px 0 40px rgba(0,0,0,0.3);
+  }
+
+  .overlay.open .panel {
+    transform: translateX(0);
+  }
+
+  .panel-header {
+    background: var(--red-dark);
+    color: #f5efe0;
+    padding: 1.2rem 1.5rem;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  .panel-tag {
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.75;
+    margin-bottom: 0.3rem;
+  }
+
+  .panel-title {
+    font-family: 'Kefa III', Georgia, serif;
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .panel-close {
+    position: absolute;
+    top: 1rem;
+    right: 1.2rem;
+    background: rgba(245,239,224,0.2);
+    border: 1px solid rgba(245,239,224,0.4);
+    color: #f5efe0;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    line-height: 1;
+    transition: background 0.15s;
+  }
+  .panel-close:hover { background: rgba(245,239,224,0.35); }
+
+  .panel-body {
+    padding: 1.5rem;
+    flex: 1;
+    color: var(--ink);
+  }
+
+  .panel-quote {
+    border-left: 3px solid var(--red);
+    padding: 0.6rem 1rem;
+    margin: 1rem 0;
+    font-family: 'Kefa III', Georgia, serif;
+    font-style: italic;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: var(--ink-light);
+    background: rgba(139,26,26,0.05);
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 1rem 0;
+  }
+
+  .stat-card {
+    background: #efe8d5;
+    border: 1px solid #d4c4a0;
+    padding: 0.75rem;
+    text-align: center;
+  }
+
+  .stat-num {
+    font-family: 'Kefa III', Georgia, serif;
+    font-weight: 700;
+    font-size: 1.8rem;
+    color: var(--red);
+    line-height: 1;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.05em;
+    color: var(--muted);
+    margin-top: 0.2rem;
+    line-height: 1.3;
+  }
+
+  .panel-body h3 {
+    font-family: 'Kefa III', Georgia, serif;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--ink);
+    margin: 1.2rem 0 0.4rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .panel-body p {
+    font-size: 0.85rem;
+    line-height: 1.7;
+    color: var(--ink-light);
+    margin-bottom: 0.6rem;
+  }
+
+  /* Mini chart */
+  .mini-chart {
+    margin: 1rem 0;
+    padding: 0.8rem;
+    background: #efe8d5;
+    border: 1px solid #d4c4a0;
+  }
+
+  .chart-title {
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.6rem;
+  }
+
+  .bar-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 8px;
+  }
+
+  .bar-label {
+    font-size: 0.68rem;
+    color: var(--ink-light);
+    width: 60px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .bar-track {
+    flex: 1;
+    height: 16px;
+    background: #d4c4a0;
+    position: relative;
+  }
+
+  .bar-fill {
+    height: 100%;
+    background: var(--red);
+    transition: width 0.8s cubic-bezier(0.16,1,0.3,1);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 4px;
+  }
+
+  .bar-fill.highlight { background: var(--ink); }
+
+  .bar-val {
+    font-size: 0.6rem;
+    color: #f5efe0;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  /* Timeline */
+  .timeline { margin: 1rem 0; }
+  .tl-item {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+  .tl-item::before {
+    content: '';
+    position: absolute;
+    left: 19px;
+    top: 22px;
+    bottom: -1rem;
+    width: 1px;
+    background: #d4c4a0;
+  }
+  .tl-item:last-child::before { display: none; }
+
+  .tl-dot {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: var(--red);
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .tl-dot::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #f5efe0;
+  }
+
+  .tl-content { flex: 1; }
+  .tl-date {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--red);
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  .tl-text {
+    font-size: 0.82rem;
+    line-height: 1.5;
+    color: var(--ink-light);
+  }
+
+  /* Instruction bar */
+  .instruction-bar {
+    background: #1a1208;
+    color: #c8b89a;
+    text-align: center;
+    padding: 0.5rem 1rem;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+
+  .instruction-bar .dot-demo {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--red);
+    animation: pulse 2s infinite;
+  }
+
+  .panel-source {
+    font-size: 0.65rem;
+    color: #8a7555;
+    font-style: italic;
+    margin-top: 1.2rem;
+    padding-top: 0.8rem;
+    border-top: 1px solid #d4c4a0;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 650px) {
+    .content-area { grid-template-columns: 1fr; }
+    .col-rule { display: none; }
+    .paper-name { font-size: 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+
+<!-- ══════════════════════════════ NEWSPAPER ══════════════════════════════ -->
+<div class="newspaper">
+  <div class="newspaper-inner">
+
+    <!-- Instruction -->
+    <div class="instruction-bar">
+      <span class="dot-demo"></span>
+      Nhấp vào tiêu đề, ảnh, quảng cáo để xem dữ liệu ẩn phía sau tờ báo này
+      <span class="dot-demo"></span>
+    </div>
+
+    <!-- Header -->
+    <div class="paper-header">
+      <div class="header-top">
+        <span>THÀNH PHỐ HỒ CHÍ MINH · NGÀY 30 THÁNG 3 NĂM 2020</span>
+        <span>BÁO IN HẰNG NGÀY · 5.000 ĐỒNG</span>
+        <span>SỐ 8.241</span>
+      </div>
+
+      <div class="masthead clickable" onclick="openPanel('masthead')" title="Nhấp để xem dữ liệu">
+        <div class="paper-name">Viet Nam News</div>
+        <div class="paper-tagline">The National English Language Daily of Vietnam</div>
+        <div class="hotspot-ring"></div>
+      </div>
+
+    </div>
+
+    <!-- Red banner -->
+    <div class="red-banner">
+      VIỆT NAM · CÁC BIỆN PHÁP PHÒNG CHỐNG DỊCH COVID-19 ĐƯỢC SIẾT CHẶT TRÊN TOÀN QUỐC
+    </div>
+
+    <!-- Main content -->
+    <div class="content-area">
+
+      <!-- LEFT COL: tiêu điểm nhỏ -->
+      <div class="col">
+        <div class="section-label">Tiêu điểm</div>
+
+        <div class="clickable lower-headline" onclick="openPanel('kinh-te-bao-chi')" style="font-size:0.9rem;margin-bottom:0.5rem;position:relative;">
+          Kinh tế báo chí chịu đòn giáng nặng nề do đại dịch COVID-19
+          <span class="hotspot-dot"></span>
+        </div>
+        <div class="col-body" style="font-size:0.77rem;">
+          <p>Đại dịch COVID-19 bùng phát đã tạo ra một biến cố lớn, tác động sâu sắc và toàn diện đến nền kinh tế báo chí Việt Nam. Trong giai đoạn dịch bệnh, các cơ quan báo chí đối mặt với sự sụt giảm nghiêm trọng về nguồn thu do đường dây phát hành bị đứt gãy và sự suy giảm trong doanh thu quảng cáo.</p>
+        </div>
+
+        <div style="border-top:1px solid var(--rule);margin:0.7rem 0;opacity:0.3;"></div>
+
+        <div class="section-label">Kinh tế - Thị trường</div>
+        <div class="col-body" style="font-size:0.77rem;">
+          <p>Giai đoạn đại dịch COVID-19 đã ảnh hưởng sâu sắc ngành du lịch Việt Nam. Tổng thu từ du khách sụt giảm sâu từ 755.000 tỷ đồng (năm 2019) xuống 312.000 tỷ đồng (năm 2020) và chỉ còn 180.000 tỷ đồng vào năm 2021. Thiệt hại ghi nhận từ việc lượng khách quốc tế, đặc biệt là thị trường Trung Quốc, giảm mạnh đến 90-100%. <em>Theo Tạp chí Công thương</em></p>
+        </div>
+
+        <div class="ad-block clickable" onclick="openPanel('quang-cao')" style="margin-top:0.8rem;">
+          <div class="ad-label">Quảng cáo</div>
+          <div class="ad-title">VIETJET AIR</div>
+          <div class="ad-body">Bay khắp Việt Nam<br>Giá từ 0 đồng*</div>
+          <div style="font-size:0.6rem;color:#8a7555;margin-top:4px;">*Đã tạm ngừng khai thác</div>
+          <div class="hotspot-ring"></div>
+        </div>
+
+        <div style="border-top:1px solid var(--rule);margin:0.7rem 0;opacity:0.3;"></div>
+
+        <div class="section-label">Kinh tế</div>
+        <div class="lower-headline" style="cursor:default;margin-bottom:0.3rem;">
+          GDP quý II/2021 tăng 6,61% nhưng rủi ro còn cao
+        </div>
+        <div class="col-body" style="font-size:0.77rem;">
+          <p>Tổng cục Thống kê: tốc độ tăng trưởng có thể bị ảnh hưởng nghiêm trọng trong quý III nếu dịch không được kiểm soát...</p>
+        </div>
+      </div>
+
+      <!-- RULE -->
+      <div class="col-rule"></div>
+
+      <!-- CENTER COL: main headline -->
+      <div class="col">
+        <div class="section-label">Tin chính</div>
+
+        <div class="clickable" onclick="openPanel('dinh-ban')" style="position:relative;padding-right:20px;">
+          <div class="col-headline">
+            Viet Nam News thông báo tạm đình bản
+          </div>
+          <div class="col-subhead">
+            A letter to our readers
+          </div>
+          <div class="hotspot-ring"></div>
+        </div>
+
+        <div class="col-body dropcap">
+          <p>It is with a pained heart that we announce a temporary suspension of the print edition of our newspaper from Tuesday, March 31 until April 15.</p>
+          <p>Dear readers,</p>
+          <p>It is with great regret that we announce a temporary suspension to the print edition of our newspaper from Tuesday, March 31 until April 15.</p>
+          <p>The decision became imperative once one of our staff tested positive for the SARS-Cov-2 virus yesterday. Many of those who have come into contact with her at our office will now have to stay isolated either at health centres or their homes.</p>
+          <p>It has thus become impossible for us to bring to you the print, hardcopy version of the nation's premier English news daily.</p>
+          <p>We sincerely apologise for the inconvenience and request your understanding in these challenging times.</p>
+          <p>Even at this juncture, we are committed to bringing you the latest developments in the country and beyond. To this end, we will ensure that our website is frequently updated with articles, analysis and commentary. So please continue your valued patronage by clicking on vietnamnews.vn and following us online.</p>
+          <p>Your print subscription will be automatically transferred to the next 16 days.</p>
+          <p>We wish you, your colleagues and loved ones good health in the days to come.</p>
+          <p>We also pledge that this experience only strengthens our resolve to come back stronger and continue to bring you news that matters about Việt Nam and the world.</p>
+          <p style="text-align:right;">— Việt Nam News team.</p>
+        </div>
+
+        <!-- Photo -->
+        <div class="photo-block clickable" onclick="openPanel('dinh-ban')">
+          <img src="./photo-dinh-ban.jpg" style="width:100%;height:auto;display:block;border:1px solid #8a7555;" alt="Phóng viên trang bị đồ bảo hộ tác nghiệp mùa dịch">
+          <div class="hotspot-ring" style="top:40%;"></div>
+        </div>
+      </div>
+
+      <!-- RULE -->
+      <div class="col-rule"></div>
+
+      <!-- RIGHT COL -->
+      <div class="col">
+        <div class="section-label">Trong nước</div>
+
+        <div class="clickable lower-headline" onclick="openPanel('dan-than')" style="margin-bottom:0.4rem;position:relative;font-weight:bold;">
+          Dấn thân vào tâm dịch
+          <span class="hotspot-dot"></span>
+        </div>
+        <div class="col-body" style="font-size:0.77rem;">
+          <p>Đối mặt với một chủng virus nguy hiểm đang ảnh hưởng lên toàn cầu, nhà báo Duy Hiệu, bằng tâm thế của một người phóng viên, đã quyết định dấn thân vào thời điểm dịch COVID-19 diễn ra khốc liệt nhất tại TP.HCM</p>
+        </div>
+
+        <div style="border-top:1px solid var(--rule);margin:0.7rem 0;opacity:0.3;"></div>
+
+        <div class="section-label">Xã hội</div>
+        <div class="col-body" style="font-size:0.77rem;">
+          <p>Hàng nghìn người lao động tự do tại TP.HCM rơi vào cảnh khó khăn. Nhiều khu nhà trọ công nhân vắng lặng hơn bao giờ hết...</p>
+        </div>
+
+        <div style="border-top:1px solid var(--rule);margin:0.7rem 0;opacity:0.3;"></div>
+
+        <div class="section-label">Văn hóa</div>
+        <div class="clickable lower-headline" onclick="openPanel('doc-gia')" style="margin-bottom:0.3rem;position:relative;">
+          Độc giả báo in: thế hệ cuối cùng?
+          <span class="hotspot-dot"></span>
+        </div>
+        <div class="col-body" style="font-size:0.77rem;">
+          <p>Dịch bệnh đẩy nhanh quá trình chuyển sang đọc báo online. Khảo sát mới cho thấy 78% người dưới 35 tuổi chưa mua báo in trong 3 tháng qua...</p>
+        </div>
+
+        <div style="border-top:1px solid var(--rule);margin:0.7rem 0;opacity:0.3;"></div>
+
+        <div class="section-label">Giáo dục</div>
+        <div class="lower-headline" style="cursor:default;margin-bottom:0.3rem;">
+          3 trường đại học cho sinh viên nghỉ học đến hết 5/4
+        </div>
+        <div class="col-body" style="font-size:0.77rem;">
+          <p>Tính đến 18h30 ngày 13/3, có ba trường đại học (ĐH Sư phạm, Trường ĐH Quốc tế Hồng Bàng và Trường ĐH Lạc Hồng) cho sinh viên nghỉ học đến ngày 5/4 trong khi trước đó hàng loạt trường đã cho sinh viên nghỉ hết tháng 3/2020 để phòng COVID-19. <em>Theo báo Tuổi trẻ</em></p>
+        </div>
+      </div>
+
+    </div><!-- /content-area -->
+  </div>
+</div><!-- /newspaper -->
+
+
+<!-- ════════════════════════════════════════════════════════ PANEL OVERLAY ════════════════════════════════════════════════════════ -->
+<div class="overlay" id="overlay" onclick="closePanel(event)">
+  <div class="panel" id="panel">
+    <div class="panel-header">
+      <div class="panel-tag" id="panel-tag">Dữ liệu ẩn</div>
+      <div class="panel-title" id="panel-title">Tiêu đề</div>
+      <button class="panel-close" onclick="closePanel(null)">✕</button>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </div>
+</div>
+
+<script>
+const panelData = {
+
+  masthead: {
+    tag: 'Phía sau tờ báo · Tài chính',
+    title: 'Khi doanh thu sụp đổ: Tình hình tài chính báo in 2020–2021',
+    body: `
+      <p>Tờ báo bạn đang cầm trên tay tồn tại được nhờ hai nguồn thu chính: <strong>bán báo</strong> và <strong>quảng cáo</strong>. Covid-19 tấn công cả hai cùng lúc.</p>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">−30%</span>
+          <div class="stat-label">Doanh thu quảng cáo báo in toàn ngành, 2020 so với 2019</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">−45%</span>
+          <div class="stat-label">Doanh thu quảng cáo báo in Q3/2021 (đỉnh dịch TP.HCM)</div>
+        </div>
+      </div>
+
+      <div class="mini-chart">
+        <div class="chart-title">Tỷ trọng doanh thu quảng cáo báo in so với tổng thị trường quảng cáo VN</div>
+        <div class="bar-row">
+          <div class="bar-label">2018</div>
+          <div class="bar-track"><div class="bar-fill" style="width:22%"><span class="bar-val">22%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">2019</div>
+          <div class="bar-track"><div class="bar-fill" style="width:18%"><span class="bar-val">18%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">2020</div>
+          <div class="bar-track"><div class="bar-fill" style="width:12%"><span class="bar-val">12%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">2021</div>
+          <div class="bar-track"><div class="bar-fill highlight" style="width:8%"><span class="bar-val">8%</span></div></div>
+        </div>
+      </div>
+
+      <h3>Ai đã rút tiền quảng cáo?</h3>
+      <p>Các nhóm ngành bị ảnh hưởng nặng nề nhất bởi Covid — hàng không, du lịch, nhà hàng khách sạn, giải trí — chính là những nhà quảng cáo lớn của báo in. Khi họ đóng băng ngân sách marketing, báo in mất nguồn thu chính.</p>
+
+      <div class="panel-quote">
+        "Nhiều tờ báo địa phương chỉ đủ tiền trả lương nhân viên nhờ vào ngân sách đặt báo của các cơ quan nhà nước — không phải từ bạn đọc thực sự."
+      </div>
+
+      <h3>Tự lực hay chờ hỗ trợ?</h3>
+      <p>Năm 2021, Bộ TT&TT ghi nhận hơn 40 cơ quan báo chí phải cắt giảm nhân sự hoặc thực hiện tinh giản biên chế. Một số tờ báo địa phương phải chuyển sang chỉ xuất bản 3 số/tuần thay vì hàng ngày.</p>
+
+      <div class="panel-source">Nguồn tổng hợp: Báo cáo Thị trường Quảng cáo Việt Nam 2021 (Dentsu); Báo cáo Cục Báo chí, Bộ TT&TT 2021; Hội Nhà báo Việt Nam.</div>
+    `
+  },
+  'kinh-te-bao-chi': {
+    tag: 'Phía sau tờ báo · Kinh tế báo chí',
+    title: 'Kinh tế báo chí chịu đòn giáng nặng nề do đại dịch COVID-19',
+    body: `
+      <p>Đại dịch COVID-19 bùng phát đã tạo ra một biến cố lớn, tác động sâu sắc và toàn diện đến nền kinh tế báo chí Việt Nam. Trong giai đoạn dịch bệnh, các cơ quan báo chí đối mặt với sự sụt giảm nghiêm trọng về nguồn thu do đường dây phát hành bị đứt gãy và sự suy giảm trong doanh thu quảng cáo.</p>
+
+      <h3>Doanh thu báo chí tổn thất nặng nề</h3>
+      <p>Theo khảo sát của Cục Báo chí (Bộ Thông tin và Truyền thông) trên 158 cơ quan báo chí in và điện tử, tổng doanh thu khối báo nói chung trong năm 2021 đã sụt giảm mạnh đến <strong>30,6%</strong>, từ mức 2.855 tỷ đồng của năm 2020 xuống chỉ còn 1.952 tỷ đồng. Thậm chí, bình quân trong các quý II, III, IV của thời kỳ đỉnh dịch, nhiều tòa soạn ghi nhận mức sụt giảm doanh thu từ quảng cáo, tài trợ và hợp tác truyền thông lên tới <strong>70%</strong>. Khủng hoảng kinh tế buộc hệ thống phải tái cơ cấu, dẫn đến việc cả nước giảm 71 cơ quan báo chí trong năm 2020 so với năm 2019 theo diện quy hoạch.</p>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">−30,6%</span>
+          <div class="stat-label">Sụt giảm tổng doanh thu khối báo, năm 2021 so với 2020</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">−70%</span>
+          <div class="stat-label">Sụt giảm doanh thu quảng cáo, tài trợ tại nhiều tòa soạn trong quý II–IV đỉnh dịch</div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">71</span>
+          <div class="stat-label">Cơ quan báo chí bị giảm theo diện quy hoạch trong năm 2020</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">1.952</span>
+          <div class="stat-label">Tỷ đồng — tổng doanh thu khối báo năm 2021 (từ 2.855 tỷ năm 2020)</div>
+        </div>
+      </div>
+
+      <h3>Làn sóng tạm dừng xuất bản bản báo giấy</h3>
+      <p>Báo in là loại hình chịu ảnh hưởng trực tiếp và nặng nề nhất do phụ thuộc vào quy trình in ấn vận chuyển. Để bảo đảm sự chủ động thích ứng với các lệnh giãn cách nghiêm ngặt, hàng loạt tòa soạn lớn nhỏ đã phải thông báo tạm ngừng xuất bản báo giấy.</p>
+
+      <p>Điển hình như tờ Việt Nam News thông báo dừng bản in từ ngày <strong>30/3/2020</strong> sau khi có phóng viên đầu tiên mắc COVID-19. Nhiều cơ quan báo chí khác như Báo Phụ nữ Thủ đô, Báo Quảng Ninh, Báo Hà Tĩnh, Thế giới & Việt Nam hay Báo Ngày Nay cũng lần lượt dừng phát hành từ đầu tháng 4/2020.</p>
+
+      <p>Bước sang đợt dịch khốc liệt năm 2021, các tờ báo có lượng độc giả lớn như Thanh Niên (từ 23/8 đến 15/9/2021) hay Tạp chí Bóng Đá cũng buộc phải tạm ngừng in ấn vật lý để chuyển trọng tâm sang phục vụ trên nền tảng số.</p>
+
+      <div class="panel-source">Nguồn tổng hợp: Khảo sát Cục Báo chí, Bộ Thông tin và Truyền thông 2021; Báo cáo Thị trường Quảng cáo Việt Nam 2021 (Dentsu); Hội Nhà báo Việt Nam.</div>
+    `
+  },
+
+
+  'tieu-luong': {
+    tag: 'Phía sau tờ báo · Phát hành',
+    title: 'Con số trên trang nhất và con số thật: Lượng phát hành sụp đổ',
+    body: `
+      <p>Nghịch lý lớn nhất của báo in trong Covid: <strong>thông tin về dịch bệnh được đọc nhiều nhất từ trước đến nay</strong> — nhưng không phải trên báo in.</p>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">−55%</span>
+          <div class="stat-label">Sản lượng phát hành báo in toàn quốc, tháng 7–8/2021 so với cùng kỳ 2020</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">0</span>
+          <div class="stat-label">Số đại lý báo in hoạt động bình thường tại TP.HCM trong tháng 7/2021</div>
+        </div>
+      </div>
+
+      <div class="mini-chart">
+        <div class="chart-title">Lượng phát hành báo in lớn TP.HCM (ước tính, đơn vị: nghìn bản/ngày)</div>
+        <div class="bar-row">
+          <div class="bar-label">Trước 2019</div>
+          <div class="bar-track"><div class="bar-fill" style="width:100%"><span class="bar-val">~350k</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">2020</div>
+          <div class="bar-track"><div class="bar-fill" style="width:65%"><span class="bar-val">~230k</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">T6/2021</div>
+          <div class="bar-track"><div class="bar-fill" style="width:40%"><span class="bar-val">~140k</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">T7-8/2021</div>
+          <div class="bar-track"><div class="bar-fill highlight" style="width:18%"><span class="bar-val">~60k</span></div></div>
+        </div>
+      </div>
+
+      <h3>Tại sao giãn cách lại chết người với báo in?</h3>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-date">9/7/2021 — Chỉ thị 16 có hiệu lực</div>
+            <div class="tl-text">Toàn TP.HCM giãn cách. Xe giao báo không còn được lưu thông tự do. Các điểm bán báo trên đường phố đóng cửa.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-date">Tuần 2 — Hệ thống phân phối tê liệt</div>
+            <div class="tl-text">Các đại lý báo không có giấy phép lưu thông. Báo in ra nhưng không đến được tay bạn đọc. Một số tờ báo quyết định giảm số lượng bản in xuống còn 20–30% so với bình thường.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-date">Tuần 4–5 — Tòa soạn cũng đóng cửa</div>
+            <div class="tl-text">Phóng viên làm việc từ xa. Biên tập online. Một số tờ báo lần đầu tiên phải "dừng in" vài ngày — điều chưa từng xảy ra trong lịch sử của họ.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-source">Dữ liệu ước tính dựa trên: Nhà Báo & Công Luận (2021); Người Làm Báo số tháng 8/2021; phỏng vấn các tòa soạn.</div>
+    `
+  },
+
+  'nguoi-ban-bao': {
+    tag: 'Phía sau tờ báo · Con người',
+    title: '"Người bán báo dạo" — Nghề biến mất trong mùa dịch',
+    body: `
+      <p>Trong chuỗi cung ứng báo in, người bán báo dạo là mắt xích cuối cùng — và cũng là người dễ tổn thương nhất. Họ không có hợp đồng, không có BHXH, không có hỗ trợ từ tòa soạn.</p>
+
+      <div class="panel-quote">
+        "Tôi bán báo từ năm 1991 đến nay. Chưa bao giờ tôi không đi bán cả — kể cả những ngày mưa bão, Tết cũng ra đường. Đợt này là lần đầu tiên tôi ở nhà hơn hai tháng."
+        <br><br>— Người bán báo dạo, 62 tuổi, Q.1 TP.HCM (phỏng vấn tháng 8/2021)
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">~3.000</span>
+          <div class="stat-label">Người bán báo dạo và tại các điểm cố định tại TP.HCM (ước tính 2020)</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">~0</span>
+          <div class="stat-label">Người trong số đó có thể hoạt động bình thường trong tháng 7–8/2021</div>
+        </div>
+      </div>
+
+      <h3>Họ là ai?</h3>
+      <p>Đa số người bán báo dạo tại TP.HCM là người trung niên hoặc cao tuổi (50–70 tuổi), nhiều người có hoàn cảnh khó khăn. Đây là công việc họ duy trì hàng chục năm — một phần của "hệ sinh thái báo in" đã tồn tại từ thời Pháp thuộc.</p>
+
+      <h3>Và khi dịch qua đi...</h3>
+      <p>Sau đợt giãn cách kéo dài, nhiều người bán báo dạo không quay lại nghề. Lý do kép: sức khỏe suy giảm sau thời gian dài ở nhà, và quan trọng hơn — <strong>lượng báo in tiếp tục giảm, không đủ</strong> để duy trì thu nhập như trước.</p>
+
+      <div class="panel-quote">
+        "Dịch chỉ là giọt nước tràn ly. Nghề bán báo đã chết dần từ khi người ta có điện thoại — dịch chỉ làm nó chết nhanh hơn thôi."
+      </div>
+
+      <div class="panel-source">Ghi chú: Số liệu ước tính, tổng hợp từ các bài phỏng vấn trên báo Tuổi Trẻ, Thanh Niên và Người Lao Động giai đoạn 2021–2022.</div>
+    `
+  },
+
+  'phong-vien': {
+    tag: 'Phía sau tờ báo · Tác nghiệp',
+    title: 'Phóng viên trong mùa dịch: Giữa làn ranh thông tin và nguy hiểm',
+    body: `
+      <p>Khi cả thành phố ở nhà, phóng viên báo in vẫn phải ra đường. Họ là những người hiếm hoi còn được cấp giấy phép lưu thông — nhưng đi kèm với đó là rủi ro và áp lực không nhỏ.</p>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">47</span>
+          <div class="stat-label">Nhà báo VN nhiễm Covid-19 khi tác nghiệp, tính đến cuối 2021 (Hội Nhà báo VN)</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">3</span>
+          <div class="stat-label">Nhà báo tử vong do Covid-19 trong năm 2021</div>
+        </div>
+      </div>
+
+      <h3>Hai loại phóng viên, hai thực tại</h3>
+      <p><strong>Phóng viên báo online:</strong> chuyển sang làm việc từ nhà gần như hoàn toàn. Biên tập từ xa, phỏng vấn qua Zalo/Zoom, khai thác nguồn từ mạng xã hội.</p>
+      <p><strong>Phóng viên báo in:</strong> áp lực kép — vừa phải ra hiện trường (vì báo in cần ảnh thực, không thể dùng ảnh chụp màn hình), vừa phải về kịp deadline bản in lúc nửa đêm.</p>
+
+      <div class="panel-quote">
+        "Mỗi sáng ra đường là mỗi sáng gọi điện cho vợ trước. Không phải để hỏi thăm — mà để báo là mình đi đâu, nếu chiều không về thì biết mà tìm."
+        <br><br>— Phóng viên ảnh, báo lớn tại TP.HCM
+      </div>
+
+      <h3>Khủng hoảng nghề nghiệp trong khủng hoảng y tế</h3>
+      <p>Không ít phóng viên báo in kỳ cựu bắt đầu tự hỏi: nếu nội dung online nhanh hơn, rẻ hơn, và người đọc đang chuyển sang mạng — thì sự tồn tại của báo in còn có ý nghĩa gì?</p>
+      <p>Đây là câu hỏi mà ngành báo in Việt Nam vẫn chưa có câu trả lời thống nhất.</p>
+
+      <div class="panel-source">Nguồn: Hội Nhà báo Việt Nam; các bài phóng sự về phóng viên tác nghiệp mùa dịch trên Người Làm Báo, tháng 8–9/2021.</div>
+    `
+  },
+
+  'quang-cao': {
+    tag: 'Phía sau tờ báo · Quảng cáo',
+    title: 'Trang quảng cáo trống — Khi nhà tài trợ biến mất',
+    body: `
+      <p>Tờ báo truyền thống sống nhờ quảng cáo nhiều hơn là tiền bán báo. Khi Covid xóa sổ các ngành hàng lớn, trang quảng cáo — và doanh thu — biến mất theo.</p>
+
+      <div class="mini-chart">
+        <div class="chart-title">Ngành hàng quảng cáo trên báo in — Mức độ sút giảm 2021 so với 2019</div>
+        <div class="bar-row">
+          <div class="bar-label">Hàng không</div>
+          <div class="bar-track"><div class="bar-fill" style="width:95%"><span class="bar-val">−95%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Du lịch</div>
+          <div class="bar-track"><div class="bar-fill" style="width:88%"><span class="bar-val">−88%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Nhà hàng/KS</div>
+          <div class="bar-track"><div class="bar-fill" style="width:75%"><span class="bar-val">−75%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">Ô tô/xe máy</div>
+          <div class="bar-track"><div class="bar-fill" style="width:40%"><span class="bar-val">−40%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">FMCG/tiêu dùng</div>
+          <div class="bar-track"><div class="bar-fill highlight" style="width:15%"><span class="bar-val">−15%</span></div></div>
+        </div>
+      </div>
+
+      <h3>Tiền quảng cáo chạy đi đâu?</h3>
+      <p>Phần lớn ngân sách quảng cáo không biến mất — nó <strong>chuyển sang nền tảng số</strong>: Facebook, Google, YouTube, và các báo điện tử. Năm 2021, quảng cáo digital chiếm hơn 60% tổng chi phí quảng cáo tại Việt Nam.</p>
+
+      <div class="panel-quote">
+        "Báo in từng là kênh uy tín nhất để quảng cáo. Nhưng bây giờ nhà quảng cáo hỏi: 'Bao nhiêu người xem?' — và báo in không thể trả lời được câu đó bằng dữ liệu thực."
+      </div>
+
+      <h3>Vòng xoáy tử thần</h3>
+      <p>Ít quảng cáo → cắt giảm trang → nội dung ít hơn → ít độc giả hơn → càng ít hấp dẫn nhà quảng cáo. Covid không tạo ra vòng xoáy này, nhưng đã làm nó quay nhanh hơn nhiều lần.</p>
+
+      <div class="panel-source">Nguồn: Báo cáo Dentsu 2021; Adsota Vietnam Digital Advertising Report 2021; Cục Báo chí.</div>
+    `
+  },
+
+  'phat-hanh': {
+    tag: 'Phía sau tờ báo · Logistics',
+    title: 'Khi chuỗi cung ứng đứt gãy: Báo in ra nhưng không đến tay độc giả',
+    body: `
+      <p>Một tờ báo in phải vượt qua nhiều khâu trước khi đến tay bạn đọc: tòa soạn → nhà in → đại lý → người bán báo dạo → độc giả. Covid-19 tấn công mọi mắt xích.</p>
+
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-date">Tuần 1 — Giãn cách bắt đầu</div>
+            <div class="tl-text">Xe tải không có giấy phép lưu thông qua chốt kiểm soát. Đại lý đóng cửa. Người bán báo dạo không ra đường.</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-date">Tuần 2–3 — Hàng tồn kho</div>
+            <div class="tl-text">Báo in ra nhưng không phát được. Một số tòa soạn buộc tiêu hủy hàng nghìn bản mỗi ngày. Tạm thời giảm số lượng bản in...</div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-date">Tuần 4+ — Đứt gãy hoàn toàn</div>
+            <div class="tl-text">Nhiều tờ báo quyết định tạm ngừng bản in, chuyển hẳn sang bản điện tử. Lần đầu tiên trong lịch sử, "không có báo in" trở thành bình thường mới.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">~90%</span>
+          <div class="stat-label">Đại lý báo in tại TP.HCM phải đóng cửa trong đợt dịch tháng 7–8/2021</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">~65%</span>
+          <div class="stat-label">Tờ báo in giảm lượng phát hành ít nhất một nửa trong cùng giai đoạn</div>
+        </div>
+      </div>
+
+      <div class="panel-source">Nguồn: Người Làm Báo; tổng hợp báo cáo ngành phát hành báo chí 2021.</div>
+    `
+  },
+
+  'doc-gia': {
+    tag: 'Phía sau tờ báo · Độc giả',
+    title: 'Độc giả báo in: thế hệ cuối cùng?',
+    body: `
+      <p>Người đọc báo in đã lớn tuổi, và Covid đẩy nhanh quá trình rời đi của họ.</p>
+
+      <div class="stat-row">
+        <div class="stat-card">
+          <span class="stat-num">78%</span>
+          <div class="stat-label">Người dưới 35 tuổi không mua báo in trong 3 tháng giãn cách (khảo sát 2021)</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-num">+340%</span>
+          <div class="stat-label">Lượng truy cập vào các trang báo điện tử lớn trong tháng 7–8/2021</div>
+        </div>
+      </div>
+
+      <div class="mini-chart">
+        <div class="chart-title">Lượng truy cập vào các trang báo điện tử lớn trong tháng 7–8/2021</div>
+        <div class="bar-row">
+          <div class="bar-label">Trước 7/2021</div>
+          <div class="bar-track"><div class="bar-fill" style="width:35%"><span class="bar-val">100%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">7/2021</div>
+          <div class="bar-track"><div class="bar-fill" style="width:65%"><span class="bar-val">+185%</span></div></div>
+        </div>
+        <div class="bar-row">
+          <div class="bar-label">8/2021</div>
+          <div class="bar-track"><div class="bar-fill highlight" style="width:100%"><span class="bar-val">+340%</span></div></div>
+        </div>
+      </div>
+
+      <p>Khảo sát cho thấy nhóm đọc báo in thường xuyên chủ yếu là người <strong>trên 50 tuổi</strong>, sống ở <strong>đô thị</strong>. Đây chính là nhóm có nguy cơ cao nhất với Covid-19 — và cũng là nhóm phải ở nhà nhiều nhất.</p>
+
+      <p>Điều đáng lo ngại không phải là giai đoạn giãn cách — mà là <strong>sau khi giãn cách kết thúc</strong>, lượng độc giả báo in không hồi phục như kỳ vọng.</p>
+
+      <div class="panel-source">Nguồn: Khảo sát Reuters Institute Digital News Report 2022 (phần Việt Nam); Cục Báo chí, Bộ TT&TT.</div>
+    `
+  },
+
+  'dan-than': {
+    tag: 'Trong nước',
+    title: 'Dấn thân vào tâm dịch',
+    body: `
+      <p>Đối mặt với một chủng virus nguy hiểm đang ảnh hưởng lên toàn cầu, nhà báo Duy Hiệu, bằng tâm thế của một người phóng viên, đã quyết định dấn thân vào thời điểm dịch COVID-19 diễn ra khốc liệt nhất tại TP.HCM</p>
+      <p>Khi TP.HCM bước vào những ngày tháng căng thẳng nhất, đối mặt với một loại virus mà thời điểm đó chưa ai hiểu rõ triệu chứng, nhà báo Duy Hiệu đã đưa ra quyết định lịch sử của đời mình, anh chọn tiến thẳng vào tâm dịch để lấy tin. Anh bước đi không phải vì liều lĩnh, mà bởi một tâm thế tự nhiên của người làm báo. Với anh, đại dịch này sẽ là một biến cố lịch sử, là một phóng viên địa bàn, anh muốn gánh trên vai trách nhiệm này phải có mặt để ghi lại, để kể chuyện. Anh chấp nhận kịch bản có thể nhiễm bệnh, thậm chí chuyển nặng, nhưng chưa từng nghĩ đến tình huống xấu nhất.</p>
+      <p>Chính tâm thế vững vàng đó đã giúp anh đối diện với không khí khắc nghiệt tại các bệnh viện dã chiến. Sự tàn khốc của căn bệnh hiện hình qua tiếng loạt xoạt của những lớp nilon bọc thi thể dày đặc ám ảnh anh đến mãi sau đại dịch, qua hình ảnh người vợ quay mặt vào tường né tránh vì không đủ can đảm nhìn linh cữu chồng lướt qua. Đối mặt với tầng tầng lớp lớp bi kịch, anh buộc mình phải chai lì hơn để cầm máy, vượt qua nỗi sợ hãi để hoàn thành sứ mệnh của một người chép sử bằng hình ảnh.</p>
+      <p><em>Theo Báo Nhân dân</em></p>
+      <p style="margin-top:0.8em;"><a href="https://nhandan.vn/special/nha-bao-duy-hieu/index.html" target="_blank" rel="noopener" style="color:#8b5e3c;text-decoration:underline;">Xem thêm về bài phỏng vấn nhà báo Duy Hiệu tại: nhandan.vn/special/nha-bao-duy-hieu</a></p>
+    `
+  },
+
+  'dinh-ban': {
+    tag: 'Tin chính',
+    title: 'Viet Nam News thông báo tạm đình bản',
+    body: `
+      <p>Sau khi Bộ Y tế công bố một nữ phóng viên của toà soạn là ca nhiễm thứ 183, Việt Nam News đã nhanh chóng thông báo tạm dừng xuất bản báo in. Nội dung thông báo được viết bằng tiếng Anh, tạm dịch:</p>
+      <h3>Thư gửi quý độc giả</h3>
+      <p>Với niềm tiếc nuối sâu sắc, chúng tôi xin trân trọng thông báo về việc tạm dừng xuất bản ấn bản báo in từ thứ Ba, ngày 31 tháng 3 đến hết ngày 15 tháng 4.</p>
+      <p>Kính gửi quý độc giả,</p>
+      <p>Tòa soạn chúng tôi vô cùng tiếc nuối khi phải thông báo về việc tạm dừng xuất bản ấn phẩm báo in từ thứ Ba, ngày 31 tháng 3 đến hết ngày 15 tháng 4.</p>
+      <p>Đây là quyết định bất khả kháng sau khi một nhân viên của tòa soạn có kết quả xét nghiệm dương tính với vi-rút SARS-CoV-2 vào ngày hôm qua. Do đó, nhiều nhân sự từng tiếp xúc gần với nhân viên này tại văn phòng sẽ phải thực hiện cách ly tập trung tại các cơ sở y tế hoặc cách ly tại nhà.</p>
+      <p>Việc này khiến chúng tôi không thể tiếp tục in ấn và phát hành ấn phẩm báo giấy của tờ nhật báo tiếng Anh hàng đầu Việt Nam tới tay quý vị.</p>
+      <p>Ban biên tập xin chân thành xin lỗi quý độc giả vì sự bất tiện này, đồng thời rất mong nhận được sự thông cảm và đồng hành của quý vị trong giai đoạn đầy thử thách này.</p>
+      <p>Ngay cả trong hoàn cảnh ngặt nghèo hiện tại, chúng tôi cam kết vẫn tiếp tục cập nhật liên tục tới quý vị những diễn biến mới nhất trong nước và quốc tế. Vì mục tiêu đó, tòa soạn sẽ đảm bảo nội dung được cập nhật thường xuyên trên trang web với các tin bài phân tích và bình luận chuyên sâu.</p>
+      <p>Kính mong quý độc giả tiếp tục dành sự quan tâm và ủng hộ cho chúng tôi bằng cách truy cập vào địa chỉ vietnamnews.vn và theo dõi các kênh trực tuyến của báo.</p>
+      <p>Đối với quý khách hàng đã đăng ký mua báo in dài hạn, thời gian đăng ký của quý vị sẽ tự động được gia hạn thêm 16 ngày.</p>
+      <p>Kính chúc quý độc giả, cùng gia đình và đồng nghiệp luôn dồi dào sức khỏe trong những ngày tới.</p>
+      <p>Chúng tôi cũng xin cam kết rằng, thử thách này sẽ chỉ càng làm vững chắc quyết tâm của tập thể tòa soạn ngày một trở nên mạnh mẽ hơn, tiếp tục mang đến cho quý vị những thông tin giá trị và đáng tin cậy về Việt Nam cũng như thế giới.</p>
+      <p style="text-align:right;">— Ban biên tập Việt Nam News</p>
+    `
+  }
+};
+
+function openPanel(id) {
+  const data = panelData[id];
+  if (!data) return;
+  document.getElementById('panel-tag').textContent = data.tag;
+  document.getElementById('panel-title').textContent = data.title;
+  document.getElementById('panel-body').innerHTML = data.body;
+  document.getElementById('overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  // Animate bars after panel opens
+  setTimeout(() => {
+    document.querySelectorAll('.bar-fill').forEach(bar => {
+      const target = bar.style.width;
+      bar.style.width = '0%';
+      setTimeout(() => { bar.style.width = target; }, 50);
+    });
+  }, 350);
+}
+
+function closePanel(e) {
+  if (e && e.target !== document.getElementById('overlay')) return;
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closePanel(null);
+});
+</script>
+</body>
+</html>
