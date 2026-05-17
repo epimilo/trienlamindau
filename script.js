@@ -880,6 +880,91 @@ function drawPaintingGold() {
   ctx.fillText("Ánh giấy — Lưu dấu", W / 2, H - 22);
 }
 
+async function drawNewspaperCanvas() {
+  const canvas = document.getElementById("newspaperCanvas");
+  const artifact = document.getElementById("newspaperArtifact");
+  if (!canvas) return;
+
+  const imageSrc = "./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg";
+  const img = new Image();
+  img.crossOrigin = "anonymous";
+  img.decoding = "async";
+  img.src = imageSrc;
+
+  let loaded = false;
+  try {
+    if (img.decode) {
+      await img.decode();
+    } else {
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+    }
+    loaded = true;
+  } catch (e) {
+    console.warn("[drawNewspaperCanvas] Failed to load newspaper image:", e);
+  }
+
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+
+  if (loaded) {
+    /* Draw the actual newspaper image onto the canvas */
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(img, 0, 0, W, H);
+  } else {
+    /* Fallback: draw a placeholder newspaper look */
+    ctx.fillStyle = "#f3ead9";
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = "#3b2a14";
+    ctx.font = "bold 28px serif";
+    ctx.textAlign = "center";
+    ctx.fillText("VIỆT NAM NEWS", W / 2, 60);
+    ctx.font = "16px serif";
+    ctx.fillText("Số 30/03/2020", W / 2, 90);
+    ctx.strokeStyle = "#3b2a14";
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(30, 105); ctx.lineTo(W - 30, 105); ctx.stroke();
+    for (let i = 0; i < 12; i++) {
+      ctx.fillStyle = `rgba(59,42,20,${0.15 + Math.random() * 0.15})`;
+      const y = 120 + i * 40;
+      ctx.fillRect(30, y, W - 60, 20);
+    }
+  }
+
+  /* Apply the canvas texture to the A-Frame plane */
+  if (artifact) {
+    const applyCanvasTexture = () => {
+      const mesh = artifact.getObject3D("mesh");
+      if (mesh && mesh.material) {
+        /* Create texture from canvas */
+        const texture = new AFRAME.THREE.CanvasTexture(canvas);
+        texture.colorSpace = AFRAME.THREE.SRGBColorSpace;
+        texture.needsUpdate = true;
+        mesh.material.map = texture;
+        mesh.material.needsUpdate = true;
+        return true;
+      }
+      return false;
+    };
+
+    if (!applyCanvasTexture()) {
+      /* Wait for the entity to be loaded */
+      const tryApply = () => {
+        if (applyCanvasTexture()) {
+          artifact.removeEventListener("loaded", tryApply);
+          artifact.removeEventListener("object3dset", tryApply);
+        }
+      };
+      artifact.addEventListener("loaded", tryApply);
+      artifact.addEventListener("object3dset", tryApply);
+      setTimeout(applyCanvasTexture, 1500);
+      setTimeout(applyCanvasTexture, 4000);
+    }
+  }
+}
+
 async function drawPaintingPhoto(canvasId, imageSrc) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || !imageSrc) return false;
@@ -1053,6 +1138,9 @@ async function initCanvasTextures() {
     setTimeout(refreshNewspaperTexture, 1500);
     setTimeout(refreshNewspaperTexture, 4000);
   }
+
+  /* Draw newspaper image onto canvas as fallback / primary texture source */
+  drawNewspaperCanvas();
 
   if (!paintingResults[0]) drawPaintingDawn();
   if (!paintingResults[1]) drawPaintingEmber();

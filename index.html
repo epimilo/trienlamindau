@@ -175,6 +175,8 @@
           <a-assets timeout="30000">
             <img id="paperTexture" alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23f3ead9'/%3E%3Cg fill='none' stroke='%23d3c3a5' stroke-width='1' opacity='.45'%3E%3Cpath d='M0 64h512M0 128h512M0 192h512M0 256h512M0 320h512M0 384h512M0 448h512'/%3E%3Cpath d='M64 0v512M128 0v512M192 0v512M256 0v512M320 0v512M384 0v512M448 0v512'/%3E%3C/g%3E%3C/svg%3E" />
             <img id="newspaperImage" crossorigin="anonymous" src="./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg" />
+            <!-- Fallback newspaper texture drawn on canvas if image fails to load -->
+            <canvas id="newspaperCanvas" width="445" height="640"></canvas>
             <!-- newsstand model loaded via URL on entity -->
             <canvas id="timelineCanvas" width="512" height="682"></canvas>
             <canvas id="archiveCanvas" width="512" height="256"></canvas>
@@ -267,7 +269,7 @@
           <!-- Frame border right -->
           <a-box position="0.546 2.27 3.29" rotation="-18 0 0" width="0.053" height="1.54" depth="0.053" material="color: #a8a8a8; roughness: 0.4; metalness: 0.5"></a-box>
           <!-- Newspaper image on tilted plane (portrait 445:640) -->
-          <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 2.27 3.34" rotation="-18 0 0" width="0.98" height="1.4" material="src: #newspaperImage; shader: flat" shadow="cast: true"></a-plane>
+          <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 2.27 3.34" rotation="-18 0 0" width="0.98" height="1.4" material="src: #newspaperCanvas; shader: flat" shadow="cast: true"></a-plane>
           <!-- Spotlight on display -->
           <a-entity light="type: spot; color: #fff5e0; intensity: 1.8; angle: 35; penumbra: 0.6; decay: 1.5; distance: 5" position="0 3.8 3.9" rotation="-35 0 0"></a-entity>
 
