@@ -121,7 +121,7 @@ const artifactContent = {
 };
 
 const focusPoints = {
-  timeline:        { x: -4.95, z: 2.05 },
+  timeline:        { x: -7.5, z: 2.8 },
   archive:         { x:  4.95, z: 2.05 },
   typewriter:      { x:  4.0,  z: -2.8 },
   "painting-dawn": { x:  2.5,  z: -1.32 },
@@ -149,7 +149,7 @@ const WALK_COLLIDERS = [
   { minX: -1.05, maxX: 1.05, minZ: 2.5, maxZ: 4.55 },
   { minX: 2.58, maxX: 4.42, minZ: 2.72, maxZ: 4.24 },
   { minX: 4.55, maxX: 7.05, minZ: -6.15, maxZ: -4.25 },
-  { minX: -7.6, maxX: -6.05, minZ: 2.25, maxZ: 3.62 },
+  { minX: -7.6, maxX: -4.8, minZ: 1.1, maxZ: 5.3 },
   { minX: -8.6, maxX: 8.6, minZ: -8.85, maxZ: -7.55 }
 ];
 const MOBILE_MAX_PIXEL_RATIO = 1.25;
@@ -453,7 +453,7 @@ const GUIDE_MAX_MOVE_MS = 4600;
 const GUIDE_TOUR_STOPS = [
   { key: "intro", label: "Vị trí bắt đầu", x: 0, z: 7.0, lookAt: { x: 0, y: 1.85, z: 0 }, audio: "./audio/guide-01.mp3", fallbackMs: 30000, open: null },
   { key: "newspaper", label: "Báo Việt Nam News", x: 0, z: 1.0, lookAt: { x: 0, y: 2.25, z: 3.35 }, audio: "./audio/guide-02.mp3", fallbackMs: 41000, open: "newspaper-overlay" },
-  { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -4.0, z: 1.0, lookAt: { x: -6.83, y: 1.8, z: 3.02 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
+  { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -7.5, z: 2.8, lookAt: { x: -6.0, y: 1.06, z: 3.27 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
   { key: "painting-cluster", label: "Tranh treo tường", x: 2.5, z: -1.32, lookAt: { x: 8.78, y: 2.05, z: -1.32 }, audio: "./audio/guide-04.mp3", fallbackMs: 17000, open: "painting-tour", subStops: [
     { key: "painting-gold",    label: "Thích nghi", lookAt: { x: 8.78, y: 1.42, z: 2.65 } },
     { key: "painting-ember",   label: "Dấn thân",  lookAt: { x: 8.78, y: 2.66, z: 0.95 } },
@@ -473,96 +473,163 @@ const exploredSet = new Set();
    CANVAS TEXTURES
 ════════════════════════════════════════ */
 
-function drawTimelineCanvas() {
+async function drawTimelineCanvas() {
   const canvas = document.getElementById("timelineCanvas");
+  const artifact = document.querySelector('[data-artifact="timeline"]');
   if (!canvas) return;
+
+  const imageSrc = "./images/dong-thoi-gian.jpg";
+  /* Try loading the infographic image — first without crossOrigin (same-origin),
+     then with crossOrigin as fallback for CDN-hosted assets */
+  async function tryLoadImage(useCrossOrigin) {
+    const img = new Image();
+    if (useCrossOrigin) img.crossOrigin = "anonymous";
+    img.decoding = "async";
+    img.src = imageSrc;
+    if (img.decode) {
+      await img.decode();
+    } else {
+      await new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+    }
+    return img;
+  }
+
+  let loaded = false;
+  let img = null;
+  try {
+    img = await tryLoadImage(false);
+    loaded = true;
+  } catch (_) {
+    try {
+      img = await tryLoadImage(true);
+      loaded = true;
+    } catch (e) {
+      console.warn("[drawTimelineCanvas] Failed to load infographic image:", e);
+    }
+  }
+
   const ctx = canvas.getContext("2d");
   const W = canvas.width, H = canvas.height;
 
-  // Background
-  ctx.fillStyle = "#ece3d1";
-  ctx.fillRect(0, 0, W, H);
+  if (loaded) {
+    /* Draw the infographic image, cover-fitted to the canvas */
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = "#1a1410";
+    ctx.fillRect(0, 0, W, H);
+    const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+    const drawW = img.naturalWidth * scale;
+    const drawH = img.naturalHeight * scale;
+    const dx = (W - drawW) / 2;
+    const dy = (H - drawH) / 2;
+    ctx.drawImage(img, dx, dy, drawW, drawH);
+  } else {
+    /* Fallback: draw a styled timeline on dark background */
+    ctx.fillStyle = "#1a1410";
+    ctx.fillRect(0, 0, W, H);
 
-  // Subtle aged paper grain
-  const grainSteps = isMobileDevice ? 650 : 2000;
-  for (let i = 0; i < grainSteps; i++) {
-    ctx.fillStyle = `rgba(100,70,30,${Math.random() * 0.04})`;
-    ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+    /* Subtle grain */
+    const grainSteps = isMobileDevice ? 400 : 1200;
+    for (let i = 0; i < grainSteps; i++) {
+      ctx.fillStyle = `rgba(180,140,80,${Math.random() * 0.03})`;
+      ctx.fillRect(Math.random() * W, Math.random() * H, 1, 1);
+    }
+
+    /* Title */
+    ctx.fillStyle = "#c9a86c";
+    ctx.font = 'bold 28px "Crimson Pro", serif';
+    ctx.textAlign = "center";
+    ctx.fillText("DÒNG THỜI GIAN ĐẠI DỊCH", W / 2, 45);
+    ctx.font = 'bold 22px "Crimson Pro", serif';
+    ctx.fillText("COVID TẠI VIỆT NAM", W / 2, 75);
+
+    /* Divider */
+    ctx.strokeStyle = "#8b6242";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(60, 90); ctx.lineTo(W - 60, 90); ctx.stroke();
+
+    const events = [
+      { year: "23/01/2020", text: "Ca nhiễm COVID-19 đầu tiên tại VN" },
+      { year: "03/2020", text: "Chỉ thị 16 — cách ly toàn xã hội" },
+      { year: "07/2020", text: "Đợt dịch thứ 2 bùng phát Đà Nẵng" },
+      { year: "05/2021", text: "Đại dịch bùng phát mạnh ở TP.HCM, BN" },
+      { year: "07/2021", text: "Chỉ thị 16 tại TP.HCM và các tỉnh phía Nam" },
+      { year: "11/2021", text: "VN đạt tỷ lệ tiêm chủng cao, mở cửa trở lại" },
+      { year: "2022", text: "Bình thường hóa, khôi phục kinh tế xã hội" },
+    ];
+
+    const lineY = H / 2;
+    const startX = 70;
+    const endX = W - 70;
+
+    /* Horizontal timeline line */
+    ctx.strokeStyle = "#c9a86c";
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(startX, lineY); ctx.lineTo(endX, lineY); ctx.stroke();
+
+    const step = (endX - startX) / (events.length - 1);
+    events.forEach((ev, i) => {
+      const x = startX + i * step;
+
+      /* Dot */
+      ctx.fillStyle = "#c57c37";
+      ctx.beginPath(); ctx.arc(x, lineY, 6, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = "#1a1410";
+      ctx.beginPath(); ctx.arc(x, lineY, 3.5, 0, Math.PI * 2); ctx.fill();
+
+      /* Year above */
+      ctx.fillStyle = "#c9a86c";
+      ctx.font = 'bold 11px "Crimson Pro", monospace';
+      ctx.textAlign = "center";
+      ctx.fillText(ev.year, x, lineY - 18);
+
+      /* Event text below */
+      ctx.fillStyle = "#d4c4a8";
+      ctx.font = '10px "Crimson Pro", serif';
+      const words = ev.text.split(" ");
+      let line = "";
+      let lineY2 = lineY + 22;
+      words.forEach(w => {
+        const test = line + (line ? " " : "") + w;
+        if (ctx.measureText(test).width > 110 && line) {
+          ctx.fillText(line, x, lineY2);
+          line = w; lineY2 += 13;
+        } else { line = test; }
+      });
+      ctx.fillText(line, x, lineY2);
+    });
   }
 
-  // Title
-  ctx.fillStyle = "#3b2a14";
-  ctx.font = "bold 22px serif";
-  ctx.textAlign = "center";
-  ctx.fillText("DÒNG THỜI GIAN ĐẠI DỊCH", W / 2, 38);
-  ctx.font = "bold 18px serif";
-  ctx.fillText("COVID TẠI VIỆT NAM", W / 2, 62);
+  /* Apply the canvas texture to the A-Frame plane */
+  if (artifact) {
+    const applyCanvasTexture = () => {
+      const mesh = artifact.getObject3D("mesh");
+      if (mesh && mesh.material) {
+        const texture = new AFRAME.THREE.CanvasTexture(canvas);
+        texture.colorSpace = AFRAME.THREE.SRGBColorSpace;
+        texture.needsUpdate = true;
+        mesh.material.map = texture;
+        mesh.material.needsUpdate = true;
+        return true;
+      }
+      return false;
+    };
 
-  // Divider
-  ctx.strokeStyle = "#b38e5f";
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(40, 76); ctx.lineTo(W - 40, 76); ctx.stroke();
-
-  const events = [
-    { year: "23/01", text: "Ca nhiễm COVID-19 đầu tiên tại VN" },
-    { year: "25/01", text: "VN công bố ca nhiễm thứ 2" },
-    { year: "02/2020", text: "Biện pháp giãn cách xã hội đầu tiên" },
-    { year: "03/2020", text: "Chỉ thị 16 — cách ly toàn xã hội" },
-    { year: "07/2020", text: "Đợt dịch thứ 2 bùng phát Đà Nẵng" },
-    { year: "01/2021", text: "Ca nhiễm cộng đồng đầu tiên đợt 3" },
-    { year: "05/2021", text: "Đại dịch bùng phát mạnh ở TP.HCM, BN" },
-    { year: "07/2021", text: "Chỉ thị 16 tại TP.HCM và các tỉnh phía Nam" },
-    { year: "11/2021", text: "VN đạt tỷ lệ tiêm chủng cao, mở cửa trở lại" },
-    { year: "2022", text: "Bình thường hóa, khôi phục kinh tế xã hội" },
-  ];
-
-  const lineX = W / 2;
-  const startY = 104;
-  const step = (H - 150) / (events.length - 1);
-
-  // Timeline line
-  ctx.strokeStyle = "#c9a86c";
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(lineX, startY); ctx.lineTo(lineX, startY + step * (events.length - 1)); ctx.stroke();
-
-  events.forEach((ev, i) => {
-    const y = startY + i * step;
-    const isLeft = i % 2 === 0;
-
-    // Dot
-    ctx.fillStyle = "#c57c37";
-    ctx.beginPath(); ctx.arc(lineX, y, 6, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = "#ece3d1";
-    ctx.beginPath(); ctx.arc(lineX, y, 3.5, 0, Math.PI * 2); ctx.fill();
-
-    // Connector
-    const connEnd = isLeft ? 55 : W - 55;
-    ctx.strokeStyle = "#c9a86c";
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(lineX, y); ctx.lineTo(connEnd, y); ctx.stroke();
-
-    // Year label
-    ctx.fillStyle = "#7a5c2e";
-    ctx.font = "bold 12px monospace";
-    ctx.textAlign = isLeft ? "right" : "left";
-    ctx.fillText(ev.year, isLeft ? connEnd - 5 : connEnd + 5, y - 6);
-
-    // Event text
-    ctx.fillStyle = "#3b2a14";
-    ctx.font = "11px serif";
-    ctx.textAlign = isLeft ? "right" : "left";
-    const words = ev.text.split(" ");
-    let line = "";
-    let lineY = y + 8;
-    words.forEach(w => {
-      const test = line + (line ? " " : "") + w;
-      if (ctx.measureText(test).width > 150 && line) {
-        ctx.fillText(line, isLeft ? connEnd - 5 : connEnd + 5, lineY);
-        line = w; lineY += 13;
-      } else { line = test; }
-    });
-    ctx.fillText(line, isLeft ? connEnd - 5 : connEnd + 5, lineY);
-  });
+    if (!applyCanvasTexture()) {
+      const tryApply = () => {
+        if (applyCanvasTexture()) {
+          artifact.removeEventListener("loaded", tryApply);
+          artifact.removeEventListener("object3dset", tryApply);
+        }
+      };
+      artifact.addEventListener("loaded", tryApply);
+      artifact.addEventListener("object3dset", tryApply);
+      setTimeout(applyCanvasTexture, 1500);
+      setTimeout(applyCanvasTexture, 4000);
+    }
+  }
 }
 
 function drawArchiveCanvas() {
@@ -886,13 +953,13 @@ async function drawNewspaperCanvas() {
   if (!canvas) return;
 
   const imageSrc = "./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg";
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.decoding = "async";
-  img.src = imageSrc;
-
-  let loaded = false;
-  try {
+  /* Try loading the image — first without crossOrigin (same-origin works best),
+     then with crossOrigin as fallback for CDN-hosted assets */
+  async function tryLoadImage(useCrossOrigin) {
+    const img = new Image();
+    if (useCrossOrigin) img.crossOrigin = "anonymous";
+    img.decoding = "async";
+    img.src = imageSrc;
     if (img.decode) {
       await img.decode();
     } else {
@@ -901,9 +968,21 @@ async function drawNewspaperCanvas() {
         img.onerror = reject;
       });
     }
+    return img;
+  }
+
+  let loaded = false;
+  let img = null;
+  try {
+    img = await tryLoadImage(false);
     loaded = true;
-  } catch (e) {
-    console.warn("[drawNewspaperCanvas] Failed to load newspaper image:", e);
+  } catch (_) {
+    try {
+      img = await tryLoadImage(true);
+      loaded = true;
+    } catch (e) {
+      console.warn("[drawNewspaperCanvas] Failed to load newspaper image:", e);
+    }
   }
 
   const ctx = canvas.getContext("2d");
@@ -1019,11 +1098,11 @@ function drawMeetScreenCanvas() {
   ctx.strokeRect(0, 0, W, 52);
 
   ctx.fillStyle = "#e8eaed";
-  ctx.font = '600 15px "Kefa III", serif';
+  ctx.font = '600 15px "Crimson Pro", serif';
   ctx.textAlign = "left";
   ctx.fillText("Cuộc họp trực tuyến", 16, 22);
   ctx.fillStyle = "#9aa0a6";
-  ctx.font = '12px "Kefa III", serif';
+  ctx.font = '12px "Crimson Pro", serif';
   ctx.fillText("meet.example / phòng-họp-biên-tập", 16, 40);
 
   // Ô lưới người tham gia
@@ -1050,7 +1129,7 @@ function drawMeetScreenCanvas() {
     ctx.arc(cx, cy, Math.min(cellW, cellH) * 0.22, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = "#bdc1c6";
-    ctx.font = '13px "Kefa III", serif';
+    ctx.font = '13px "Crimson Pro", serif';
     ctx.textAlign = "center";
     ctx.fillText(`Người ${i + 1}`, cx, y + cellH - 18);
     if (t.mic) {
@@ -1082,7 +1161,7 @@ function drawMeetScreenCanvas() {
   ctx.fillRect(0, barY, W, 48);
   const btns = ["Tắt mic", "Máy ảnh", "Chia sẻ", "Rời khỏi"];
   ctx.textAlign = "center";
-  ctx.font = '11px "Kefa III", serif';
+  ctx.font = '11px "Crimson Pro", serif';
   btns.forEach((b, i) => {
     const bx = W * 0.2 + i * (W * 0.18);
     ctx.fillStyle = i === 3 ? "#ea4335" : "#5f6368";
@@ -1095,7 +1174,7 @@ function drawMeetScreenCanvas() {
 }
 
 async function initCanvasTextures() {
-  drawTimelineCanvas();
+  await drawTimelineCanvas();
   drawArchiveCanvas();
   drawMeetScreenCanvas();
 
@@ -1106,38 +1185,6 @@ async function initCanvasTextures() {
     drawPaintingPhoto("paintingEchoCanvas", "./painting-4-lan-xa-framed.jpg"),
     drawPaintingPhoto("paintingGoldCanvas", "./painting-5-thich-nghi-framed.jpg")
   ]);
-
-  /* Ensure newspaper image texture is applied (uses <img> in a-assets, not canvas) */
-  function refreshNewspaperTexture() {
-    const el = document.getElementById("newspaperArtifact");
-    if (!el) return false;
-    const mesh = el.getObject3D("mesh");
-    if (mesh && mesh.material) {
-      if (mesh.material.map) {
-        mesh.material.map.needsUpdate = true;
-      } else {
-        el.setAttribute("material", "src", "#newspaperImage");
-      }
-      mesh.material.needsUpdate = true;
-      return true;
-    }
-    return false;
-  }
-  if (!refreshNewspaperTexture()) {
-    const el = document.getElementById("newspaperArtifact");
-    if (el) {
-      const tryRefresh = () => {
-        if (refreshNewspaperTexture()) {
-          el.removeEventListener("loaded", tryRefresh);
-          el.removeEventListener("object3dset", tryRefresh);
-        }
-      };
-      el.addEventListener("loaded", tryRefresh);
-      el.addEventListener("object3dset", tryRefresh);
-    }
-    setTimeout(refreshNewspaperTexture, 1500);
-    setTimeout(refreshNewspaperTexture, 4000);
-  }
 
   /* Draw newspaper image onto canvas as fallback / primary texture source */
   drawNewspaperCanvas();
@@ -1842,7 +1889,7 @@ function animateGuideCameraPanTo(lookAtTarget, dur = 1200) {
   return waitForAFrameAnimation(mainCamera, "guide_look", dur);
 }
 
-/** Run the painting sub-tour: pan left→right across 5 paintings while audio plays */
+/** Run the painting sub-tour: show each of the 5 paintings exactly once while audio plays */
 async function runPaintingSubTourWithNarration(stop, stopIndex, narrationDone) {
   const subStops = stop.subStops;
   if (!subStops || subStops.length === 0) {
@@ -1850,42 +1897,45 @@ async function runPaintingSubTourWithNarration(stop, stopIndex, narrationDone) {
     return;
   }
 
-  /* Narration is already playing — look at center painting */
-  await animateGuideCameraLookAt(stop, 900);
-
-  /* Open the center painting panel briefly */
-  renderArtifact("painting-night");
-  await waitMs(1200);
-
-  /* Calculate per-painting dwell: total audio minus intro time, divided by 5.
-     Use the actual audio duration if available (set by playGuideNarration's
-     loadedmetadata handler), otherwise fall back to a generous estimate. */
+  /* Narration is already playing. Do NOT open any painting before the loop,
+     otherwise the first/center painting can appear twice. */
   const audioDuration = stop._actualAudioMs || (stop.fallbackMs || GUIDE_DEFAULT_DWELL_MS);
-  const introTime = 2100;
-  const panDuration = 900;
-  const perPaintingDwell = Math.max(800, Math.round((audioDuration - introTime - panDuration * 6) / subStops.length));
+  const panDuration = 850;
+  const settleTime = 150;
+  const totalTransitionTime = (panDuration + settleTime) * subStops.length;
+  const perPaintingDwell = Math.max(900, Math.round((audioDuration - totalTransitionTime) / subStops.length));
 
-  /* Pan through each painting left→right */
   for (let p = 0; p < subStops.length; p++) {
     if (!guideTourRunning) break;
     const sub = subStops[p];
     closeArtifact();
 
-    /* Smooth pan to this painting */
     await animateGuideCameraPanTo(sub.lookAt, panDuration);
-    await waitMs(200);
+    await waitMs(settleTime);
 
-    /* Open this painting's info panel */
     renderArtifact(sub.key);
-    updateGuideStatus(stopIndex, { label: `${stop.label} — ${sub.label}`, key: stop.key });
+    updateGuideStatus(stopIndex, { label: `${stop.label} — ${sub.label} (${p + 1}/${subStops.length})`, key: stop.key });
 
-    /* Wait the dwell time for this painting */
     await waitMs(perPaintingDwell);
   }
 
   closeArtifact();
-  /* Wait for narration to finish if it's still playing — never cut it short */
   await narrationDone;
+}
+
+/** Timeline guide stop: automatically opens the infographic, then closes it before continuing */
+async function runTimelineInfographicStop(stop, narrationDone) {
+  renderArtifact("timeline");
+  const timelineContent = artifactContent.timeline;
+  if (timelineContent && timelineContent.image) {
+    await waitMs(350);
+    openInfographic(timelineContent.image, timelineContent.title);
+  }
+
+  await narrationDone;
+
+  closeInfographic();
+  closeArtifact();
 }
 
 async function runGuideTour() {
@@ -1920,6 +1970,9 @@ async function runGuideTour() {
       /* Painting sub-tour manages its own timing relative to audio.
          We already started narration above, so pass the promise. */
       await runPaintingSubTourWithNarration(stop, i, narrationDone);
+    } else if (stop.key === "timeline") {
+      /* Timeline stop automatically opens the infographic, then closes it before continuing. */
+      await runTimelineInfographicStop(stop, narrationDone);
     } else {
       /* Open the info panel / overlay now that the camera has arrived */
       openGuideStopPanel(stop);
@@ -2047,13 +2100,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   updateTopBarToggle();
 
-  // Canvas textures — đợi Kefa III tải xong rồi mới vẽ chữ
+  // Canvas textures — đợi Crimson Pro tải xong rồi mới vẽ chữ
   void (async () => {
     if (document.fonts) {
       try {
         await Promise.all([
-          document.fonts.load('400 1em "Kefa III"'),
-          document.fonts.load('700 1em "Kefa III"')
+          document.fonts.load('400 1em "Crimson Pro"'),
+          document.fonts.load('700 1em "Crimson Pro"')
         ]);
       } catch (_) {
         await document.fonts.ready;
