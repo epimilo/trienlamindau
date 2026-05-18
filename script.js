@@ -454,7 +454,7 @@ const GUIDE_TOUR_STOPS = [
   { key: "intro", label: "Vị trí bắt đầu", x: 0, z: 7.0, lookAt: { x: 0, y: 1.85, z: 0 }, audio: "./audio/guide-01.mp3", fallbackMs: 30000, open: null },
   { key: "newspaper", label: "Báo Việt Nam News", x: 0, z: 1.0, lookAt: { x: 0, y: 2.25, z: 3.35 }, audio: "./audio/guide-02.mp3", fallbackMs: 41000, open: "newspaper-overlay" },
   { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -7.5, z: 2.8, lookAt: { x: -6.0, y: 1.06, z: 3.27 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
-  { key: "painting-cluster", label: "Tranh treo tường", x: 2.5, z: -1.32, lookAt: { x: 8.78, y: 2.05, z: -1.32 }, audio: "./audio/guide-04.mp3", fallbackMs: 17000, open: "painting-tour", subStops: [
+  { key: "painting-cluster", label: "Tranh treo tường", x: 2.5, z: -1.32, lookAt: { x: 8.78, y: 1.90, z: -1.32 }, audio: "./audio/guide-04.mp3", fallbackMs: 17000, open: "painting-tour", subStops: [
     { key: "painting-gold",    label: "Thích nghi", lookAt: { x: 8.78, y: 1.42, z: 2.65 } },
     { key: "painting-ember",   label: "Dấn thân",  lookAt: { x: 8.78, y: 2.66, z: 0.95 } },
     { key: "painting-night",   label: "Kết nối",   lookAt: { x: 8.78, y: 2.1,  z: -1.45 } },
@@ -1445,13 +1445,23 @@ function waitForAFrameAnimation(el, name, fallbackMs) {
 }
 
 function computeCameraRotationFromLookAt(from, target) {
-  const dx = target.x - from.x;
-  const dy = (target.y || 1.65) - from.y;
-  const dz = target.z - from.z;
-  const horizontal = Math.max(0.0001, Math.hypot(dx, dz));
-  const yaw = AFRAME && AFRAME.THREE ? AFRAME.THREE.MathUtils.radToDeg(Math.atan2(-dx, -dz)) : 0;
-  const pitch = AFRAME && AFRAME.THREE ? AFRAME.THREE.MathUtils.radToDeg(Math.atan2(dy, horizontal)) : 0;
-  return { x: Math.max(-35, Math.min(18, pitch)), y: yaw, z: 0 };
+  if (!AFRAME || !AFRAME.THREE) return { x: 0, y: 0, z: 0 };
+  const THREE = AFRAME.THREE;
+  const lookAtTarget = new THREE.Vector3(
+    target.x,
+    typeof target.y === 'number' ? target.y : 1.65,
+    target.z
+  );
+  const origin = new THREE.Vector3(from.x, from.y, from.z);
+  const temp = new THREE.Object3D();
+  temp.position.copy(origin);
+  temp.lookAt(lookAtTarget);
+  const euler = new THREE.Euler().setFromQuaternion(temp.quaternion, 'YXZ');
+  return {
+    x: THREE.MathUtils.radToDeg(euler.x),
+    y: THREE.MathUtils.radToDeg(euler.y),
+    z: 0
+  };
 }
 
 function animateGuideCameraLookAt(stop, dur = 1200) {
