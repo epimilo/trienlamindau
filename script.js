@@ -454,7 +454,7 @@ const GUIDE_TOUR_STOPS = [
   { key: "intro", label: "Vị trí bắt đầu", x: 0, z: 7.0, lookAt: { x: 0, y: 1.85, z: 0 }, audio: "./audio/guide-01.mp3", fallbackMs: 30000, open: null },
   { key: "newspaper", label: "Báo Việt Nam News", x: 0, z: 1.0, lookAt: { x: 0, y: 2.25, z: 3.35 }, audio: "./audio/guide-02.mp3", fallbackMs: 41000, open: "newspaper-overlay" },
   { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -7.5, z: 2.8, lookAt: { x: -6.0, y: 1.06, z: 3.27 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
-  { key: "painting-cluster", label: "Tranh treo tường", x: 2.5, z: -1.32, lookAt: { x: 8.78, y: 1.90, z: -1.32 }, audio: "./audio/guide-04.mp3", fallbackMs: 17000, open: "painting-tour", subStops: [
+  { key: "painting-cluster", label: "Tranh treo tường", x: 2.5, z: -1.32, lookAt: { x: 8.78, y: 1.90, z: -1.32 }, rotation: { x: 0, y: -90, z: 0 }, audio: "./audio/guide-04.mp3", fallbackMs: 17000, open: "painting-tour", subStops: [
     { key: "painting-gold",    label: "Thích nghi", lookAt: { x: 8.78, y: 1.42, z: 2.65 } },
     { key: "painting-ember",   label: "Dấn thân",  lookAt: { x: 8.78, y: 2.66, z: 0.95 } },
     { key: "painting-night",   label: "Kết nối",   lookAt: { x: 8.78, y: 2.1,  z: -1.45 } },
@@ -1465,13 +1465,13 @@ function computeCameraRotationFromLookAt(from, target) {
 }
 
 function animateGuideCameraLookAt(stop, dur = 1200) {
-  if (!mainCamera || !cameraRig || !stop || !stop.lookAt) return Promise.resolve();
+  if (!mainCamera || !cameraRig || !stop || (!stop.lookAt && !stop.rotation)) return Promise.resolve();
   const from = {
     x: cameraRig.object3D.position.x,
     y: cameraRig.object3D.position.y,
     z: cameraRig.object3D.position.z
   };
-  const rot = computeCameraRotationFromLookAt(from, stop.lookAt);
+  const rot = stop.rotation ? stop.rotation : computeCameraRotationFromLookAt(from, stop.lookAt);
   mainCamera.setAttribute("animation__guide_look", `property: rotation; to: ${rot.x} ${rot.y} ${rot.z}; dur: ${dur}; easing: easeInOutQuad`);
   return waitForAFrameAnimation(mainCamera, "guide_look", dur);
 }
@@ -1499,7 +1499,7 @@ async function animateGuideCameraTo(stop) {
   const moveYaw = THREE.MathUtils.radToDeg(Math.atan2(-moveDx, -moveDz));
 
   /* Calculate where the viewer SHOULD look (at the new stop's object) */
-  const newLookRot = computeCameraRotationFromLookAt(
+  const newLookRot = stop.rotation ? stop.rotation : computeCameraRotationFromLookAt(
     { x: current.x, y: current.y, z: current.z },
     stop.lookAt || { x: stop.x, y: 1.65, z: stop.z }
   );
