@@ -1219,7 +1219,7 @@ function showAssetLoader() {
   o.style.background = 'rgba(10,10,10,0.6)';
   o.style.color = '#fff7e6';
   o.style.zIndex = 99999;
-  o.innerHTML = `<div style="padding:22px 28px;border-radius:10px;background:rgba(0,0,0,0.6);box-shadow:0 8px 24px rgba(0,0,0,0.6);font-size:18px">Đang nạp tài nguyên... Vui lòng chờ</div>`;
+  o.innerHTML = `<div style="padding:22px 28px;border-radius:10px;background:rgba(0,0,0,0.6);box-shadow:0 8px 24px rgba(0,0,0,0.6);font-size:18px">Đang tải... Bạn chờ xíu nhé!</div>`;
   document.body.appendChild(o);
 }
 

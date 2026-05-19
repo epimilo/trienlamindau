@@ -263,16 +263,16 @@
             <a-entity position="0 1.2 0">
               <!-- Backboard / support panel -->
               <a-box position="0 0.14 0" rotation="-18 0 0" width="1.04" height="1.46" depth="0.08" material="color: #1d1d1d; roughness: 0.35; metalness: 0.12"></a-box>
-              <!-- Frame border top -->
-              <a-box position="0 0.85 0.03" rotation="-18 0 0" width="1.10" height="0.06" depth="0.08" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
-              <!-- Frame border bottom -->
-              <a-box position="0 -0.58 0.03" rotation="-18 0 0" width="1.10" height="0.06" depth="0.08" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
-              <!-- Frame border left -->
-              <a-box position="-0.53 0.14 0.03" rotation="-18 0 0" width="0.06" height="1.38" depth="0.08" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
-              <!-- Frame border right -->
-              <a-box position="0.53 0.14 0.03" rotation="-18 0 0" width="0.06" height="1.38" depth="0.08" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
-              <!-- Newspaper page image on a fixed front surface -->
-              <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 0.14 0.05" rotation="-18 0 0" width="0.96" height="1.40" material="src: #newspaperImage; shader: flat; side: double" shadow="cast: true"></a-plane>
+              <!-- Frame border top (aligned with plane) -->
+              <a-box position="0 0.85 0.06" rotation="-18 0 0" width="1.10" height="0.04" depth="0.04" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
+              <!-- Frame border bottom (aligned with plane) -->
+              <a-box position="0 -0.58 0.06" rotation="-18 0 0" width="1.10" height="0.04" depth="0.04" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
+              <!-- Frame border left (aligned with plane) -->
+              <a-box position="-0.53 0.14 0.06" rotation="-18 0 0" width="0.04" height="1.38" depth="0.04" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
+              <!-- Frame border right (aligned with plane) -->
+              <a-box position="0.53 0.14 0.06" rotation="-18 0 0" width="0.04" height="1.38" depth="0.04" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
+              <!-- Newspaper page image on a fixed front surface (plane slightly forward) -->
+              <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 0.14 0.02" rotation="-18 0 0" width="0.96" height="1.40" material="src: #newspaperImage; shader: flat; side: double" shadow="cast: true"></a-plane>
             </a-entity>
             <!-- Spotlight on display -->
             <a-entity light="type: spot; color: #fff5e0; intensity: 1.8; angle: 35; penumbra: 0.6; decay: 1.5; distance: 5" position="0 3.75 0.85" rotation="-35 0 0"></a-entity>
@@ -281,32 +281,32 @@
 
           <!-- QUY HOẠCH CƠ CẤU TÒA SOẠN — sa bàn trong lồng kính (bên phải stand báo) -->
           <a-entity id="cityscapeGroup" position="3.5 0 3.48">
-            <!-- Tall pedestal base (sa bàn style) -->
-            <a-box class="teleportable" data-surface="pedestal" position="0 0.46 0" width="1.85" height="0.92" depth="1.52" material="color: #4f433c; roughness: 0.7; metalness: 0.2"></a-box>
+            <!-- Taller pedestal base -->
+            <a-box class="teleportable" data-surface="pedestal" position="0 0.56 0" width="1.85" height="1.20" depth="1.52" material="color: #4f433c; roughness: 0.7; metalness: 0.2"></a-box>
             <!-- Pedestal top bevel -->
-            <a-box position="0 0.93 0" width="1.88" height="0.04" depth="1.55" material="color: #5a5048; roughness: 0.6; metalness: 0.25"></a-box>
+            <a-box position="0 1.22 0" width="1.88" height="0.04" depth="1.55" material="color: #5a5048; roughness: 0.6; metalness: 0.25"></a-box>
             <!-- Pedestal light strip -->
-            <a-box position="0 0.955 0" width="1.90" height="0.025" depth="1.57" material="color: #ffe1af; emissive: #ffd49d; emissiveIntensity: 0.95; transparent: true; opacity: 0.34; roughness: 0.18; metalness: 0.05"></a-box>
+            <a-box position="0 1.25 0" width="1.90" height="0.03" depth="1.57" material="color: #ffe1af; emissive: #ffd49d; emissiveIntensity: 0.95; transparent: true; opacity: 0.28; roughness: 0.18; metalness: 0.05"></a-box>
             <!-- Base light glow -->
-            <a-entity light="type: point; color: #ffe8c0; intensity: 0.8; distance: 3.5; decay: 2" position="0 1.05 0"></a-entity>
-            <!-- Glass case — semi-transparent panels (shorter, proportional to model) -->
-            <a-box position="0 2.18 0" width="1.52" height="2.4" depth="1.2" material="color: #d2e4ff; transparent: true; opacity: 0.15; roughness: 0.06; metalness: 0.15; side: double; depthWrite: false"></a-box>
+            <a-entity light="type: point; color: #ffe8c0; intensity: 0.9; distance: 3.5; decay: 2" position="0 1.05 0"></a-entity>
+            <!-- Glass case — shorter and centered -->
+            <a-box position="0 1.60 0" width="1.52" height="1.60" depth="1.20" material="color: #d2e4ff; transparent: true; opacity: 0.14; roughness: 0.06; metalness: 0.15; side: double; depthWrite: false"></a-box>
             <!-- Glass case — wireframe edge lines -->
-            <a-box position="0 2.18 0" width="1.54" height="2.42" depth="1.22" material="color: #1a1a1a; wireframe: true; shader: flat; depthWrite: false"></a-box>
-            <!-- City buildings model (sa bàn) — on top of tall pedestal -->
+            <a-box position="0 1.60 0" width="1.54" height="1.62" depth="1.22" material="color: #1a1a1a; wireframe: true; shader: flat; depthWrite: false"></a-box>
+            <!-- City buildings model — centered on pedestal -->
             <a-entity
-              position="-0.142 1.18 -0.208"
-              rotation="0 -30 0"
-              scale="0.28 0.28 0.28"
+              position="0 1.05 0"
+              rotation="0 0 0"
+              scale="0.32 0.32 0.32"
               gltf-model="./low-poly_city_buildings.glb"
               shadow="cast: true; receive: false"
             ></a-entity>
-            <!-- Lights inside case -->
-            <a-entity light="type: point; color: #ffe5b8; intensity: 1.1; distance: 5; decay: 2" position="0 1.8 0.15"></a-entity>
-            <a-entity light="type: point; color: #fff6e8; intensity: 1.4; distance: 6; position="0 2.6 0.6"></a-entity>
-            <a-entity light="type: point; color: #cfe6ff; intensity: 0.6; distance: 4; position="0 1.8 -0.5"></a-entity>
-            <!-- Invisible hitbox for click interaction (front face) -->
-            <a-box class="clickable" data-artifact="cityscape" data-label="Quy hoạch hệ thống báo chí" position="0 2.1 0.65" width="1.15" height="2.2" depth="0.05" material="color: #ffffff; transparent: true; opacity: 0; shader: flat" visible="true"></a-box>
+            <!-- Lights inside case (adjusted) -->
+            <a-entity light="type: point; color: #ffe5b8; intensity: 1.1; distance: 5; decay: 2" position="0 1.35 0.15"></a-entity>
+            <a-entity light="type: point; color: #fff6e8; intensity: 1.2; distance: 6" position="0 1.8 0.45"></a-entity>
+            <a-entity light="type: point; color: #cfe6ff; intensity: 0.6; distance: 4" position="0 1.05 -0.25"></a-entity>
+            <!-- Invisible hitbox for click interaction — attached to model (centered) -->
+            <a-box class="clickable" data-artifact="cityscape" data-label="Quy hoạch hệ thống báo chí" position="0 1.05 0" width="1.0" height="1.0" depth="1.0" material="color: #ffffff; transparent: true; opacity: 0; shader: flat" visible="true"></a-box>
           </a-entity>
 
 
