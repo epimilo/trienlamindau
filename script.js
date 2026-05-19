@@ -461,7 +461,7 @@ const GUIDE_TOUR_STOPS = [
     { key: "painting-echo",    label: "Lăn xả",    lookAt: { x: 8.78, y: 1.42, z: -3.6 } },
     { key: "painting-dawn",    label: "Sẵn sàng",  lookAt: { x: 8.78, y: 2.66, z: -5.15 } }
   ] },
-  { key: "hazmat-exhibit", label: "Mô hình đồ bảo hộ cá nhân phòng chống COVID-19", x: -3.8, z: -5.2, lookAt: { x: -6.05, y: 1.65, z: -7.05 }, audio: "./audio/guide-05.mp3", fallbackMs: 20000, open: "artifact" },
+  { key: "hazmat-exhibit", label: "Mô hình đồ bảo hộ cá nhân phòng chống COVID-19", x: -6.05, z: -5.15, lookAt: { x: -6.05, y: 1.65, z: -6.35 }, audio: "./audio/guide-05.mp3", fallbackMs: 20000, open: "artifact" },
   { key: "meeting-setup", label: "Cuộc họp giao ban online", x: 0, z: -2.5, lookAt: { x: 0, y: 2.45, z: -8.76 }, audio: "./audio/guide-06.mp3", fallbackMs: 25000, open: "artifact" },
   { key: "typewriter", label: "Sạp báo bị phong toả", x: 2.8, z: -2.8, lookAt: { x: 5.8, y: 1.8, z: -5.2 }, audio: "./audio/guide-07.mp3", fallbackMs: 34000, open: "artifact" },
   { key: "cityscape", label: "Quy hoạch hệ thống báo chí", x: 1.2, z: 1.0, lookAt: { x: 3.5, y: 2.1, z: 3.48 }, audio: "./audio/guide-08.mp3", fallbackMs: 50000, open: "artifact" },
@@ -1219,8 +1219,13 @@ function showAssetLoader() {
   o.style.background = 'rgba(10,10,10,0.6)';
   o.style.color = '#fff7e6';
   o.style.zIndex = 99999;
-  o.innerHTML = `<div style="padding:22px 28px;border-radius:10px;background:rgba(0,0,0,0.6);box-shadow:0 8px 24px rgba(0,0,0,0.6);font-size:18px">Đang tải... Bạn chờ xíu nhé!</div>`;
+  o.innerHTML = `<div style="padding:22px 28px;border-radius:10px;background:rgba(0,0,0,0.6);box-shadow:0 8px 24px rgba(0,0,0,0.6);font-size:18px;text-align:center;max-width:380px;"><div id="assetLoaderMessage">Đang tải... Bạn chờ xíu nhé!</div></div>`;
   document.body.appendChild(o);
+}
+
+function updateAssetLoaderMessage(message) {
+  const msg = document.getElementById('assetLoaderMessage');
+  if (msg) msg.textContent = message;
 }
 
 function hideAssetLoader() {
@@ -1228,38 +1233,81 @@ function hideAssetLoader() {
   if (o) o.remove();
 }
 
-async function waitForAllAssets(timeout = 15000) {
-  const promises = [];
-  // a-assets loaded
+async function waitForAllAssets(timeout = 30000) {
+  const assets = [];
   const aAssets = document.querySelector('a-assets');
   if (aAssets) {
-    promises.push(new Promise(resolve => {
+    assets.push(...Array.from(aAssets.querySelectorAll('img, a-asset-item, audio')));
+  }
+
+  const loadAsset = (el) => new Promise((resolve, reject) => {
+    const tag = el.tagName.toLowerCase();
+    if (tag === 'img') {
+      if (el.complete && el.naturalWidth > 0) return resolve();
+      const onDone = () => { cleanup(); resolve(); };
+      const onFail = () => { cleanup(); reject(new Error('image-failed')); };
+      const cleanup = () => {
+        el.removeEventListener('load', onDone);
+        el.removeEventListener('error', onFail);
+      };
+      el.addEventListener('load', onDone, { once: true });
+      el.addEventListener('error', onFail, { once: true });
+      return;
+    }
+    if (tag === 'a-asset-item' || tag === 'audio') {
+      if (el.hasAttribute('loaded')) return resolve();
+      const onLoaded = () => { cleanup(); resolve(); };
+      const onError = () => { cleanup(); reject(new Error('asset-failed')); };
+      const cleanup = () => {
+        el.removeEventListener('loaded', onLoaded);
+        el.removeEventListener('error', onError);
+      };
+      el.addEventListener('loaded', onLoaded, { once: true });
+      el.addEventListener('error', onError, { once: true });
+      return;
+    }
+    resolve();
+  });
+
+  const promises = assets.map(loadAsset);
+
+  // a-assets loaded event as safeguard
+  if (aAssets) {
+    promises.push(new Promise((resolve) => {
       if (aAssets.hasAttribute('loaded')) return resolve();
       aAssets.addEventListener('loaded', resolve, { once: true });
-      // Some versions use 'loaded' on scene instead
+      document.querySelector('a-scene')?.addEventListener('loaded', resolve, { once: true });
       setTimeout(resolve, 1200);
     }));
   }
+
   // canvas textures
   if (window.canvasTexturesReady) {
     promises.push(Promise.resolve());
   } else {
     promises.push(new Promise(resolve => document.addEventListener('canvasTexturesReady', resolve, { once: true })));
   }
+
   // wait for glTF models
   const models = Array.from(document.querySelectorAll('[gltf-model]'));
   models.forEach(el => {
-    promises.push(new Promise(resolve => {
+    promises.push(new Promise((resolve, reject) => {
       if (el.getObject3D && el.getObject3D('mesh')) return resolve();
-      el.addEventListener('model-loaded', () => resolve(), { once: true });
-      // also resolve after a small grace in case model events don't fire
-      setTimeout(resolve, 2500);
+      const onLoaded = () => { cleanup(); resolve(); };
+      const onError = () => { cleanup(); reject(new Error('model-failed')); };
+      const cleanup = () => {
+        el.removeEventListener('model-loaded', onLoaded);
+        el.removeEventListener('model-error', onError);
+      };
+      el.addEventListener('model-loaded', onLoaded, { once: true });
+      el.addEventListener('model-error', onError, { once: true });
+      setTimeout(() => { cleanup(); resolve(); }, 8000);
     }));
   });
 
-  // race with timeout
   const all = Promise.all(promises);
-  return Promise.race([all, new Promise(resolve => setTimeout(resolve, timeout))]);
+  const timer = new Promise((_, reject) => setTimeout(() => reject(new Error('asset-timeout')), timeout));
+  return Promise.race([all, timer]);
 }
 
 function dismissSplash(options = {}) {
@@ -2080,9 +2128,14 @@ async function runGuideTour() {
 async function startGuideExperience() {
   /* User just clicked — this is a user gesture, unlock audio NOW */
   _unlockAudio();
-  // Ensure assets (images, canvases, models) are loaded before entering
   showAssetLoader();
-  await waitForAllAssets(15000);
+  try {
+    await waitForAllAssets(30000);
+  } catch (err) {
+    updateAssetLoaderMessage('Một số tài nguyên chưa tải xong. Vui lòng tải lại trang hoặc chờ thêm.');
+    console.warn('[Asset Loader] waitForAllAssets failed:', err);
+    return;
+  }
   hideAssetLoader();
   prepareRoomEntry({ guide: true });
   if (isMobileDevice) await enterFullscreenOnMobile();
@@ -2092,9 +2145,14 @@ async function startGuideExperience() {
 async function startFreeExperience() {
   /* User just clicked — this is a user gesture, unlock audio NOW */
   _unlockAudio();
-  // Ensure assets are loaded before entering free exploration
   showAssetLoader();
-  await waitForAllAssets(12000);
+  try {
+    await waitForAllAssets(30000);
+  } catch (err) {
+    updateAssetLoaderMessage('Một số tài nguyên chưa tải xong. Vui lòng tải lại trang hoặc chờ thêm.');
+    console.warn('[Asset Loader] waitForAllAssets failed:', err);
+    return;
+  }
   hideAssetLoader();
   prepareRoomEntry({ guide: false });
   if (isMobileDevice) await enterFullscreenOnMobile();
