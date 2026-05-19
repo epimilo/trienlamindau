@@ -1194,11 +1194,74 @@ async function initCanvasTextures() {
   if (!paintingResults[2]) drawPaintingNight();
   if (!paintingResults[3]) drawPaintingEcho();
   if (!paintingResults[4]) drawPaintingGold();
+  // Signal that canvas-based textures are ready
+  try { window.canvasTexturesReady = true; document.dispatchEvent(new Event('canvasTexturesReady')); } catch (_) { window.canvasTexturesReady = true; }
 }
 
 /* ════════════════════════════════════════
    INTRO SPLASH
 ════════════════════════════════════════ */
+/* ════════════════════════════════════════
+   ASSET LOADING HELPERS
+════════════════════════════════════════ */
+function showAssetLoader() {
+  if (document.getElementById('assetLoaderOverlay')) return;
+  const o = document.createElement('div');
+  o.id = 'assetLoaderOverlay';
+  o.style.position = 'fixed';
+  o.style.left = '0';
+  o.style.top = '0';
+  o.style.right = '0';
+  o.style.bottom = '0';
+  o.style.display = 'flex';
+  o.style.alignItems = 'center';
+  o.style.justifyContent = 'center';
+  o.style.background = 'rgba(10,10,10,0.6)';
+  o.style.color = '#fff7e6';
+  o.style.zIndex = 99999;
+  o.innerHTML = `<div style="padding:22px 28px;border-radius:10px;background:rgba(0,0,0,0.6);box-shadow:0 8px 24px rgba(0,0,0,0.6);font-size:18px">Đang nạp tài nguyên... Vui lòng chờ</div>`;
+  document.body.appendChild(o);
+}
+
+function hideAssetLoader() {
+  const o = document.getElementById('assetLoaderOverlay');
+  if (o) o.remove();
+}
+
+async function waitForAllAssets(timeout = 15000) {
+  const promises = [];
+  // a-assets loaded
+  const aAssets = document.querySelector('a-assets');
+  if (aAssets) {
+    promises.push(new Promise(resolve => {
+      if (aAssets.hasAttribute('loaded')) return resolve();
+      aAssets.addEventListener('loaded', resolve, { once: true });
+      // Some versions use 'loaded' on scene instead
+      setTimeout(resolve, 1200);
+    }));
+  }
+  // canvas textures
+  if (window.canvasTexturesReady) {
+    promises.push(Promise.resolve());
+  } else {
+    promises.push(new Promise(resolve => document.addEventListener('canvasTexturesReady', resolve, { once: true })));
+  }
+  // wait for glTF models
+  const models = Array.from(document.querySelectorAll('[gltf-model]'));
+  models.forEach(el => {
+    promises.push(new Promise(resolve => {
+      if (el.getObject3D && el.getObject3D('mesh')) return resolve();
+      el.addEventListener('model-loaded', () => resolve(), { once: true });
+      // also resolve after a small grace in case model events don't fire
+      setTimeout(resolve, 2500);
+    }));
+  });
+
+  // race with timeout
+  const all = Promise.all(promises);
+  return Promise.race([all, new Promise(resolve => setTimeout(resolve, timeout))]);
+}
+
 function dismissSplash(options = {}) {
   if (!introSplash) return;
   const { showIntroToggle = true } = options;
@@ -2017,6 +2080,10 @@ async function runGuideTour() {
 async function startGuideExperience() {
   /* User just clicked — this is a user gesture, unlock audio NOW */
   _unlockAudio();
+  // Ensure assets (images, canvases, models) are loaded before entering
+  showAssetLoader();
+  await waitForAllAssets(15000);
+  hideAssetLoader();
   prepareRoomEntry({ guide: true });
   if (isMobileDevice) await enterFullscreenOnMobile();
   setTimeout(runGuideTour, 780);
@@ -2025,6 +2092,10 @@ async function startGuideExperience() {
 async function startFreeExperience() {
   /* User just clicked — this is a user gesture, unlock audio NOW */
   _unlockAudio();
+  // Ensure assets are loaded before entering free exploration
+  showAssetLoader();
+  await waitForAllAssets(12000);
+  hideAssetLoader();
   prepareRoomEntry({ guide: false });
   if (isMobileDevice) await enterFullscreenOnMobile();
   /* Start ambient background music in free exploration mode */
