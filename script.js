@@ -452,7 +452,7 @@ const GUIDE_MIN_MOVE_MS = 1800;
 const GUIDE_MAX_MOVE_MS = 4600;
 const GUIDE_TOUR_STOPS = [
   { key: "intro", label: "Vị trí bắt đầu", x: 0, z: 7.0, lookAt: { x: 0, y: 1.85, z: 0 }, audio: "./audio/guide-01.mp3", fallbackMs: 30000, open: null },
-  { key: "newspaper", label: "Báo Việt Nam News", x: 0, z: 1.0, lookAt: { x: 0, y: 2.25, z: 3.35 }, audio: "./audio/guide-02.mp3", fallbackMs: 41000, open: "newspaper-overlay" },
+  { key: "newspaper", label: "Báo Việt Nam News", x: 0, z: 1.0, lookAt: { x: 0, y: 2.25, z: 3.35 }, noMove: true, audio: "./audio/guide-02.mp3", fallbackMs: 41000, open: "newspaper-overlay" },
   { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -7.5, z: 2.8, lookAt: { x: -6.0, y: 1.06, z: 3.27 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
   { key: "painting-cluster", label: "Tranh treo tường", x: 2.5, z: -1.32, lookAt: { x: 8.78, y: 1.90, z: -1.32 }, rotation: { x: 0, y: -90, z: 0 }, audio: "./audio/guide-04.mp3", fallbackMs: 17000, open: "painting-tour", subStops: [
     { key: "painting-gold",    label: "Thích nghi", lookAt: { x: 8.78, y: 1.42, z: 2.65 } },
@@ -463,7 +463,7 @@ const GUIDE_TOUR_STOPS = [
   ] },
   { key: "hazmat-exhibit", label: "Mô hình đồ bảo hộ cá nhân phòng chống COVID-19", x: -6.05, z: -4.45, lookAt: { x: -6.05, y: 1.65, z: -7.05 }, audio: "./audio/guide-05.mp3", fallbackMs: 20000, open: "artifact" },
   { key: "meeting-setup", label: "Cuộc họp giao ban online", x: 0, z: -2.5, lookAt: { x: 0, y: 2.45, z: -8.76 }, audio: "./audio/guide-06.mp3", fallbackMs: 25000, open: "artifact" },
-  { key: "typewriter", label: "Sạp báo bị phong toả", x: 5.8, z: -3.8, lookAt: { x: 5.8, y: 1.8, z: -5.2 }, audio: "./audio/guide-07.mp3", fallbackMs: 34000, open: "artifact" },
+  { key: "typewriter", label: "Sạp báo bị phong toả", x: 5.8, z: -3.15, lookAt: { x: 5.8, y: 1.8, z: -5.2 }, audio: "./audio/guide-07.mp3", fallbackMs: 34000, open: "artifact" },
   { key: "cityscape", label: "Quy hoạch hệ thống báo chí", x: 1.2, z: 1.0, lookAt: { x: 3.5, y: 2.1, z: 3.48 }, audio: "./audio/guide-08.mp3", fallbackMs: 50000, open: "artifact" },
   { key: "outro", label: "Trở về điểm bắt đầu", x: 0, z: 7.0, lookAt: { x: 0, y: 1.85, z: 0 }, audio: "./audio/guide-09.mp3", fallbackMs: 12000, open: null }
 ];
@@ -1599,8 +1599,8 @@ async function animateGuideCameraTo(stop) {
   const moveDz = stop.z - current.z;
   const moveDist = Math.hypot(moveDx, moveDz);
 
-  if (moveDist < 0.15) {
-    /* Already at position — just rotate to face the object */
+  if (stop.noMove || moveDist < 0.15) {
+    /* Keep the viewer in place and just rotate to face the object */
     await animateGuideCameraLookAt(stop, 900);
     return;
   }

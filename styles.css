@@ -734,9 +734,10 @@ body.is-mobile.is-rotate-lock .intro-splash {
   margin-top: 18px;
   color: var(--muted);
   line-height: 1.7;
+  text-align: justify;
 }
 
-.artifact-body p { margin: 0 0 16px; }
+.artifact-body p { margin: 0 0 16px; text-align: inherit; }
 .artifact-body p:last-child { margin-bottom: 0; }
 .artifact-figure {
   margin: 22px 0 0;
