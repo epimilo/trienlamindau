@@ -1,15 +1,36 @@
-/* ── Kefa III (body + tiêu đề hiện vật) ── */
+/* ── Crimson Pro (body + tiêu đề hiện vật) — cross-platform serif ── */
 @font-face {
-  font-family: "Kefa III";
-  src: url("./fonts/KefaIII.ttf") format("truetype");
-  font-weight: 300 800;
+  font-family: "Crimson Pro";
+  src: url("./fonts/CrimsonPro-Regular.ttf") format("truetype");
+  font-weight: 400;
   font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Crimson Pro";
+  src: url("./fonts/CrimsonPro-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Crimson Pro";
+  src: url("./fonts/CrimsonPro-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Crimson Pro";
+  src: url("./fonts/CrimsonPro-Italic.ttf") format("truetype");
+  font-weight: 400;
+  font-style: italic;
   font-display: swap;
 }
 
 /* ── Design tokens ── */
 :root {
-  --font-body: "Kefa III", "IBM Plex Sans", Georgia, serif;
+  --font-body: "Crimson Pro", Georgia, serif;
   --font-splash-title: "Cormorant Garamond", serif;
   --bg: #090b10;
   --bg-soft: rgba(12, 16, 24, 0.82);
@@ -960,8 +981,14 @@ body.is-mobile .app-shell {
 
 .intro-splash__choices .intro-splash__enter {
   animation: none;
-  max-width: min(100%, 430px);
+  max-width: none;
   justify-content: center;
+}
+
+/* Ensure the enter button text never wraps to multiple lines */
+.intro-splash__enter-text {
+  white-space: nowrap;
+  display: inline-block;
 }
 
 .intro-splash__enter--guide {
