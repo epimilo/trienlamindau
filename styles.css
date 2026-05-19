@@ -739,6 +739,11 @@ body.is-mobile.is-rotate-lock .intro-splash {
 
 .artifact-body p { margin: 0 0 16px; text-align: inherit; }
 .artifact-body p:last-child { margin-bottom: 0; }
+
+/* Skip tooltip styling (small toast) */
+#skipTooltip {
+  pointer-events: none;
+}
 .artifact-figure {
   margin: 22px 0 0;
   border-radius: 18px;

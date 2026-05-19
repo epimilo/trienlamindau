@@ -196,6 +196,10 @@ let hasEnteredRoom = false;
 let guideModeActive = false;
 let guideTourRunning = false;
 let guideTourStarted = false;
+let guideCurrentIndex = 0;
+// guideSkipFlag can be null | 'stop' | 'substop'
+let guideSkipFlag = null;
+let guideInSubTour = false;
 
 function isKeyboardWalkBlocked() {
   if (introSplash) {
@@ -1865,6 +1869,8 @@ function setGuideMode(active) {
   if (cameraRig) cameraRig.setAttribute("keyboard-walk", `speed: ${active ? 0 : 4.65}`);
   if (mainCursor) mainCursor.setAttribute("raycaster", active ? "objects: .guide-disabled" : "objects: .clickable, .teleportable");
   if (mainCamera) mainCamera.setAttribute("look-controls", `touchEnabled: ${active ? "false" : "true"}; mouseEnabled: ${active ? "false" : "true"}; magicWindowTrackingEnabled: ${(!active && hasEnteredRoom) ? "true" : "false"}`);
+  const skipBtn = document.getElementById('guideSkipBtn');
+  if (skipBtn) skipBtn.hidden = !active;
 }
 
 function prepareRoomEntry({ guide = false } = {}) {
@@ -1893,6 +1899,32 @@ function updateGuideStatus(stopIndex, stop) {
 function hideGuideStatus() {
   const el = document.getElementById("guideStatus");
   if (el) el.hidden = true;
+}
+
+function skipToNextGuideStop() {
+  if (!guideTourRunning) return;
+  // If we're inside a painting sub-tour, request substop skip; otherwise skip whole stop
+  guideSkipFlag = guideInSubTour ? 'substop' : 'stop';
+  // Close overlays to ensure we can move immediately
+  closeArtifact();
+  closeInfographic();
+  if (newspaperView && !newspaperView.classList.contains("overlay--hidden")) closeNewspaper();
+  // Stop narration early
+  if (guideNarrationAudio && !guideNarrationAudio.paused) {
+    try { guideNarrationAudio.pause(); } catch (_) {}
+    try { guideNarrationAudio.dispatchEvent(new Event('ended')); } catch (_) {}
+  }
+  // Force any running A-Frame animations to consider themselves complete so awaits unblock
+  try { mainCamera && mainCamera.dispatchEvent(new Event('animationcomplete__guide_look')); } catch (_) {}
+  try { cameraRig && cameraRig.dispatchEvent(new Event('animationcomplete__guide_move')); } catch (_) {}
+  // Visual feedback
+  showSkipTooltip('Đã chuyển tới điểm tiếp theo');
+  // Temporarily disable skip button to avoid spam
+  const btn = document.getElementById('guideSkipBtn');
+  if (btn) {
+    btn.disabled = true;
+    setTimeout(() => { btn.disabled = false; }, 700);
+  }
 }
 
 function playGuideNarration(stop) {
@@ -2010,6 +2042,40 @@ function animateGuideCameraPanTo(lookAtTarget, dur = 1200) {
   return waitForAFrameAnimation(mainCamera, "guide_look", dur);
 }
 
+function showSkipTooltip(message) {
+  if (!message) return;
+  let el = document.getElementById('skipTooltip');
+  if (!el) {
+    el = document.createElement('div');
+    el.id = 'skipTooltip';
+    el.style.position = 'fixed';
+    el.style.left = '50%';
+    el.style.bottom = '14%';
+    el.style.transform = 'translateX(-50%)';
+    el.style.padding = '10px 16px';
+    el.style.borderRadius = '8px';
+    el.style.background = 'rgba(0,0,0,0.7)';
+    el.style.color = '#fff';
+    el.style.fontSize = '14px';
+    el.style.zIndex = 100000;
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 220ms ease, transform 320ms cubic-bezier(.2,.9,.3,1)';
+    document.body.appendChild(el);
+  }
+  el.textContent = message;
+  // animate in
+  requestAnimationFrame(() => {
+    el.style.opacity = '1';
+    el.style.transform = 'translateX(-50%) translateY(-6px)';
+  });
+  // fade out after short delay
+  clearTimeout(el._hideTimeout);
+  el._hideTimeout = setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(-50%) translateY(0)';
+  }, 900);
+}
+
 /** Run the painting sub-tour: show each of the 5 paintings exactly once while audio plays */
 async function runPaintingSubTourWithNarration(stop, stopIndex, narrationDone) {
   const subStops = stop.subStops;
@@ -2026,10 +2092,19 @@ async function runPaintingSubTourWithNarration(stop, stopIndex, narrationDone) {
   const totalTransitionTime = (panDuration + settleTime) * subStops.length;
   const perPaintingDwell = Math.max(900, Math.round((audioDuration - totalTransitionTime) / subStops.length));
 
+  guideInSubTour = true;
   for (let p = 0; p < subStops.length; p++) {
     if (!guideTourRunning) break;
     const sub = subStops[p];
     closeArtifact();
+
+    // If user requested skip of substop, consume flag and advance to next painting
+    if (guideSkipFlag === 'substop') {
+      guideSkipFlag = null;
+      // provide immediate visual feedback and continue to next painting
+      showSkipTooltip('Đã chuyển tới tranh tiếp theo');
+      continue;
+    }
 
     await animateGuideCameraPanTo(sub.lookAt, panDuration);
     await waitMs(settleTime);
@@ -2037,8 +2112,19 @@ async function runPaintingSubTourWithNarration(stop, stopIndex, narrationDone) {
     renderArtifact(sub.key);
     updateGuideStatus(stopIndex, { label: `${stop.label} — ${sub.label} (${p + 1}/${subStops.length})`, key: stop.key });
 
-    await waitMs(perPaintingDwell);
+    // During per-painting dwell, allow skip to next painting
+    const dwellStart = Date.now();
+    while (Date.now() - dwellStart < perPaintingDwell) {
+      if (!guideTourRunning) break;
+      if (guideSkipFlag === 'substop') {
+        guideSkipFlag = null;
+        showSkipTooltip('Đã chuyển tới tranh tiếp theo');
+        break; // break out to advance to next painting
+      }
+      await waitMs(120);
+    }
   }
+  guideInSubTour = false;
 
   closeArtifact();
   await narrationDone;
@@ -2069,46 +2155,51 @@ async function runGuideTour() {
     audioState.audioElement.pause();
     audioState.audioElement.volume = 0;
   }
+  // Start from guide start
+  guideCurrentIndex = 0;
   if (cameraRig) cameraRig.object3D.position.set(GUIDE_START.x, 1.6, GUIDE_START.z);
   await waitMs(250);
-  for (let i = 0; i < GUIDE_TOUR_STOPS.length; i++) {
-    if (!guideTourRunning) break;
-    const stop = GUIDE_TOUR_STOPS[i];
-    updateGuideStatus(i, stop);
 
-    /* Start narration FIRST so audio begins loading/playing during
-       the camera transition.  This eliminates the "silent gap" caused
-       by leading silence in the audio files — by the time the camera
-       arrives at the object the narrator is already speaking. */
+  const totalStops = GUIDE_TOUR_STOPS.length;
+  while (guideCurrentIndex < totalStops && guideTourRunning) {
+    const stop = GUIDE_TOUR_STOPS[guideCurrentIndex];
+    updateGuideStatus(guideCurrentIndex, stop);
+
+    // Start narration early
     const narrationDone = playGuideNarration(stop);
 
-    /* Move camera to the stop while narration is already playing */
+    // Move camera to the stop (or only rotate if stop.noMove)
     await animateGuideCameraTo(stop);
     await animateGuideCameraLookAt(stop, 900);
 
-    /* Check if this is a painting-tour stop with sub-stops */
+    if (!guideTourRunning) break;
+
     if (stop.open === "painting-tour" && stop.subStops && stop.subStops.length > 0) {
-      /* Painting sub-tour manages its own timing relative to audio.
-         We already started narration above, so pass the promise. */
-      await runPaintingSubTourWithNarration(stop, i, narrationDone);
+      await runPaintingSubTourWithNarration(stop, guideCurrentIndex, narrationDone);
     } else if (stop.key === "timeline") {
-      /* Timeline stop automatically opens the infographic, then closes it before continuing. */
       await runTimelineInfographicStop(stop, narrationDone);
     } else {
-      /* Open the info panel / overlay now that the camera has arrived */
       openGuideStopPanel(stop);
-      /* Wait for the full narration to finish — never cut it short */
+      // Wait for narration to finish unless the user skipped
       await narrationDone;
-      /* Close whichever panel is open — artifact or newspaper overlay */
       if (stop.key === "newspaper") {
         closeNewspaper();
       } else {
         closeArtifact();
       }
     }
-    /* Brief pause before moving to the next stop */
+
+    // If the user requested a skip, advance immediately; otherwise go to next
+    if (guideSkipFlag) {
+      guideSkipFlag = false;
+      guideCurrentIndex = Math.min(guideCurrentIndex + 1, totalStops);
+      continue;
+    }
+
+    guideCurrentIndex++;
     await waitMs(600);
   }
+
   if (guideNarrationAudio) guideNarrationAudio.pause();
   hideGuideStatus();
   setGuideMode(false);
@@ -2264,6 +2355,15 @@ document.addEventListener("DOMContentLoaded", () => {
   if (guideTourBtn) {
     guideTourBtn.addEventListener("click", startGuideExperience);
   }
+  // Guide skip button
+  const guideSkipBtn = document.getElementById('guideSkipBtn');
+  if (guideSkipBtn) guideSkipBtn.addEventListener('click', (e) => { e.preventDefault(); skipToNextGuideStop(); }, false);
+
+  // Also keyboard support: press N to skip to next guide stop
+  window.addEventListener('keydown', (e) => {
+    if (!guideTourRunning) return;
+    if (e.key === 'n' || e.key === 'N') skipToNextGuideStop();
+  }, false);
 
   // Fullscreen listeners
   document.addEventListener("fullscreenchange", updateFullscreenButton);
