@@ -254,25 +254,24 @@
             <a-box class="clickable" data-artifact="hazmat-exhibit" data-label="Trang phục bảo hộ" position="0 1.65 0.72" width="1.15" height="2.55" depth="0.05" material="color: #ffffff; transparent: true; opacity: 0.04"></a-box>
           </a-entity>
 
-          <!-- NEWSPAPER — museum display stand with image (scaled 1.4×) -->
-          <!-- Base plate -->
-          <a-box class="teleportable" data-surface="pedestal" position="0 0.056 3.48" width="0.98" height="0.112" depth="0.7" material="color: #c8c8c8; roughness: 0.6; metalness: 0.3"></a-box>
-          <!-- Pole (shortened so it doesn't pierce the tilted frame) -->
-          <a-cylinder position="0 0.941 3.48" radius="0.035" height="1.658" material="color: #b0b0b0; roughness: 0.4; metalness: 0.55"></a-cylinder>
-          <!-- Tilted frame back panel (portrait: 1.03w × 1.46h) -->
-          <a-box position="0 2.27 3.33" rotation="-18 0 0" width="1.036" height="1.456" depth="0.025" material="color: #d8d8d8; roughness: 0.5; metalness: 0.2"></a-box>
-          <!-- Frame border top -->
-          <a-box position="0 3.01 3.1" rotation="-18 0 0" width="1.148" height="0.053" depth="0.053" material="color: #a8a8a8; roughness: 0.4; metalness: 0.5"></a-box>
-          <!-- Frame border bottom -->
-          <a-box position="0 1.53 3.56" rotation="-18 0 0" width="1.148" height="0.053" depth="0.053" material="color: #a8a8a8; roughness: 0.4; metalness: 0.5"></a-box>
-          <!-- Frame border left -->
-          <a-box position="-0.546 2.27 3.29" rotation="-18 0 0" width="0.053" height="1.54" depth="0.053" material="color: #a8a8a8; roughness: 0.4; metalness: 0.5"></a-box>
-          <!-- Frame border right -->
-          <a-box position="0.546 2.27 3.29" rotation="-18 0 0" width="0.053" height="1.54" depth="0.053" material="color: #a8a8a8; roughness: 0.4; metalness: 0.5"></a-box>
-          <!-- Newspaper image on tilted plane (portrait 445:640) -->
-          <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 2.27 3.34" rotation="-18 0 0" width="0.98" height="1.4" material="src: #newspaperImage; shader: flat" shadow="cast: true"></a-plane>
-          <!-- Spotlight on display -->
-          <a-entity light="type: spot; color: #fff5e0; intensity: 1.8; angle: 35; penumbra: 0.6; decay: 1.5; distance: 5" position="0 3.8 3.9" rotation="-35 0 0"></a-entity>
+          <!-- NEWSPAPER — custom display stand with newspaper page image -->
+          <a-entity id="newspaperStand" position="0 0 3.48">
+            <!-- Base plate -->
+            <a-box class="teleportable" data-surface="pedestal" position="0 0.06 0" width="0.98" height="0.12" depth="0.68" material="color: #c8c8c8; roughness: 0.6; metalness: 0.3"></a-box>
+            <!-- Pole -->
+            <a-box position="0 0.58 0" width="0.08" height="1.02" depth="0.08" material="color: #7f7f7f; roughness: 0.45; metalness: 0.25"></a-box>
+            <!-- Back support plate -->
+            <a-box position="0 1.55 0.19" rotation="-18 0 0" width="1.02" height="1.42" depth="0.06" material="color: #2f2f2f; roughness: 0.45; metalness: 0.18"></a-box>
+            <!-- Newspaper frame borders -->
+            <a-box position="0 2.05 0.15" rotation="-18 0 0" width="1.08" height="0.05" depth="0.05" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
+            <a-box position="0 1.04 0.15" rotation="-18 0 0" width="1.08" height="0.05" depth="0.05" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
+            <a-box position="-0.53 1.55 0.15" rotation="-18 0 0" width="0.05" height="1.34" depth="0.05" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
+            <a-box position="0.53 1.55 0.15" rotation="-18 0 0" width="0.05" height="1.34" depth="0.05" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
+            <!-- Newspaper page image -->
+            <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 1.55 0.18" rotation="-18 0 0" width="0.95" height="1.35" material="src: #newspaperImage; shader: flat" shadow="cast: true"></a-plane>
+            <!-- Spotlight on display -->
+            <a-entity light="type: spot; color: #fff5e0; intensity: 1.8; angle: 35; penumbra: 0.6; decay: 1.5; distance: 5" position="0 3.75 0.85" rotation="-35 0 0"></a-entity>
+          </a-entity>
 
 
           <!-- QUY HOẠCH CƠ CẤU TÒA SOẠN — sa bàn trong lồng kính (bên phải stand báo) -->
