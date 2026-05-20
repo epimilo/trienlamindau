@@ -468,7 +468,7 @@ const GUIDE_TOUR_STOPS = [
   { key: "hazmat-exhibit", label: "Mô hình đồ bảo hộ cá nhân phòng chống COVID-19", x: -6.05, z: -4.45, lookAt: { x: -6.05, y: 1.65, z: -7.05 }, audio: "./audio/guide-05.mp3", fallbackMs: 20000, open: "artifact" },
   { key: "meeting-setup", label: "Cuộc họp giao ban online", x: 0, z: -2.5, lookAt: { x: 0, y: 2.45, z: -8.76 }, audio: "./audio/guide-06.mp3", fallbackMs: 25000, open: "artifact" },
   { key: "typewriter", label: "Sạp báo bị phong toả", x: 5.8, z: -1.6, lookAt: { x: 5.8, y: 1.8, z: -5.2 }, audio: "./audio/guide-07.mp3", fallbackMs: 34000, open: "artifact" },
-  { key: "cityscape", label: "Quy hoạch hệ thống báo chí", x: 3.5, z: 0.6, lookAt: { x: 3.5, y: 1.05, z: 3.48 }, audio: "./audio/guide-08.mp3", fallbackMs: 50000, open: "artifact" },
+  { key: "cityscape", label: "Quy hoạch hệ thống báo chí", x: 3.5, z: 1.6, lookAt: { x: 3.5, y: 1.05, z: 3.48 }, audio: "./audio/guide-08.mp3", fallbackMs: 50000, open: "artifact" },
   { key: "outro", label: "Trở về điểm bắt đầu", x: 0, z: 7.0, lookAt: { x: 0, y: 1.85, z: 0 }, audio: "./audio/guide-09.mp3", fallbackMs: 12000, open: null }
 ];
 const exploredSet = new Set();
@@ -1875,6 +1875,8 @@ function setGuideMode(active) {
   if (mainCamera) mainCamera.setAttribute("look-controls", `touchEnabled: ${active ? "false" : "true"}; mouseEnabled: ${active ? "false" : "true"}; magicWindowTrackingEnabled: ${(!active && hasEnteredRoom) ? "true" : "false"}`);
   const skipBtn = document.getElementById('guideSkipBtn');
   if (skipBtn) skipBtn.hidden = !active;
+  const skipFloating = document.getElementById('guideSkipFloating');
+  if (skipFloating) skipFloating.style.display = active ? 'flex' : 'none';
 }
 
 function prepareRoomEntry({ guide = false } = {}) {
@@ -2359,9 +2361,22 @@ document.addEventListener("DOMContentLoaded", () => {
   if (guideTourBtn) {
     guideTourBtn.addEventListener("click", startGuideExperience);
   }
-  // Guide skip button
+  // Guide skip button (top bar)
   const guideSkipBtn = document.getElementById('guideSkipBtn');
   if (guideSkipBtn) guideSkipBtn.addEventListener('click', (e) => { e.preventDefault(); skipToNextGuideStop(); }, false);
+
+  // Floating skip button — create if missing
+  let guideSkipFloating = document.getElementById('guideSkipFloating');
+  if (!guideSkipFloating) {
+    guideSkipFloating = document.createElement('button');
+    guideSkipFloating.id = 'guideSkipFloating';
+    guideSkipFloating.className = 'button button--round';
+    guideSkipFloating.title = 'Chuyển đến hiện vật tiếp theo (Phím N)';
+    guideSkipFloating.textContent = '→';
+    guideSkipFloating.style.display = 'none';
+    document.body.appendChild(guideSkipFloating);
+    guideSkipFloating.addEventListener('click', (e) => { e.preventDefault(); skipToNextGuideStop(); }, false);
+  }
 
   // Also keyboard support: press N to skip to next guide stop
   window.addEventListener('keydown', (e) => {
