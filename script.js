@@ -2448,7 +2448,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const key = journeySelect.value;
       if (!key) return;
       focusArtifact(key);
-      if (key !== "newspaper") renderArtifact(key);
+      if (key === "newspaper") {
+        openNewspaper();
+        return;
+      }
+      renderArtifact(key);
     });
   }
 
