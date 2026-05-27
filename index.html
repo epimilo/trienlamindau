@@ -10,6 +10,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet" />
     <link rel="preload" href="./fonts/CrimsonPro-Regular.ttf" as="font" type="font/ttf" crossorigin />
     <link rel="preload" href="./fonts/CrimsonPro-Bold.ttf" as="font" type="font/ttf" crossorigin />
+    <link rel="preload" href="./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg" as="image" />
+    <link rel="preload" href="./images/dong-thoi-gian.jpg" as="image" />
+    <link rel="preload" href="./painting-1-san-sang-framed.jpg" as="image" />
+    <link rel="preload" href="./painting-2-dan-than-framed.jpg" as="image" />
+    <link rel="preload" href="./painting-3-ket-noi-framed.jpg" as="image" />
+    <link rel="preload" href="./painting-4-lan-xa-framed.jpg" as="image" />
+    <link rel="preload" href="./painting-5-thich-nghi-framed.jpg" as="image" />
     <link rel="stylesheet" href="./styles.css" />
     <script src="https://aframe.io/releases/1.7.1/aframe.min.js"></script>
     <script src="./script.js" defer></script>
@@ -113,6 +120,7 @@
           </label>
           <div class="top-bar__actions">
             <button type="button" class="button button--small" data-action="toggle-audio" id="audioButton">Tắt nhạc</button>
+            <button type="button" class="button button--small" id="guideStopBtn" hidden>Dừng hướng dẫn</button>
           </div>
         </div>
       </section>
@@ -175,7 +183,11 @@
         <a-scene renderer="antialias: true; colorManagement: true" background="color: #111111" vr-mode-ui="enabled: true" device-orientation-permission-ui="enabled: false" loading-screen="enabled: false" embedded>
           <a-assets timeout="30000">
             <img id="paperTexture" alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23f3ead9'/%3E%3Cg fill='none' stroke='%23d3c3a5' stroke-width='1' opacity='.45'%3E%3Cpath d='M0 64h512M0 128h512M0 192h512M0 256h512M0 320h512M0 384h512M0 448h512'/%3E%3Cpath d='M64 0v512M128 0v512M192 0v512M256 0v512M320 0v512M384 0v512M448 0v512'/%3E%3C/g%3E%3C/svg%3E" />
-            <img id="newspaperImage" src="./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg" />
+            <img id="newspaperImage" src="./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg" loading="eager" />
+            <img id="timelineImage" src="./images/dong-thoi-gian.jpg" loading="eager" />
+            <a-asset-item id="hazmatCharacterModel" src="./hazmat-character-fixed.glb"></a-asset-item>
+            <a-asset-item id="cityBuildingsModel" src="./low-poly_city_buildings.glb"></a-asset-item>
+            <a-asset-item id="paintingFramesModel" src="./Hitem3d-1778980352426.compressed.glb"></a-asset-item>
             <!-- Fallback newspaper texture drawn on canvas if image fails to load -->
             <canvas id="newspaperCanvas" width="445" height="640"></canvas>
             <!-- newsstand model loaded via URL on entity -->
@@ -245,7 +257,7 @@
               position="0 1.44 0.14"
               rotation="0 0 0"
               scale="1.22 1.22 1.22"
-              gltf-model="./hazmat-character-fixed.glb"
+              gltf-model="#hazmatCharacterModel"
               hazmat-display
             ></a-entity>
             <a-entity light="type: point; color: #ffe5b8; intensity: 1.25; distance: 6.8; decay: 2" position="0 1.18 0.15"></a-entity>

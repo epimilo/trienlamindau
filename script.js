@@ -457,7 +457,7 @@ const GUIDE_MAX_MOVE_MS = 4600;
 const GUIDE_TOUR_STOPS = [
   { key: "intro", label: "Vị trí bắt đầu", x: 0, z: 7.0, lookAt: { x: 0, y: 1.85, z: 0 }, audio: "./audio/guide-01.mp3", fallbackMs: 30000, open: null },
   { key: "newspaper", label: "Báo Việt Nam News", x: 0, z: 1.0, lookAt: { x: 0, y: 2.25, z: 3.35 }, noMove: true, audio: "./audio/guide-02.mp3", fallbackMs: 41000, open: "newspaper-overlay" },
-  { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -8.4, z: 4.0, lookAt: { x: -6.2, y: 1.06, z: 3.41 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
+  { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -3.0, z: 4.6, lookAt: { x: -6.2, y: 1.06, z: 3.41 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
   { key: "painting-cluster", label: "Tranh treo tường", x: 2.5, z: -1.32, lookAt: { x: 8.78, y: 1.90, z: -1.32 }, rotation: { x: 0, y: -90, z: 0 }, audio: "./audio/guide-04.mp3", fallbackMs: 17000, open: "painting-tour", subStops: [
     { key: "painting-gold",    label: "Thích nghi", lookAt: { x: 8.78, y: 1.42, z: 2.65 } },
     { key: "painting-ember",   label: "Dấn thân",  lookAt: { x: 8.78, y: 2.66, z: 0.95 } },
@@ -483,6 +483,13 @@ async function drawTimelineCanvas() {
   if (!canvas) return;
 
   const imageSrc = "./images/dong-thoi-gian.jpg";
+  let loaded = false;
+  let img = null;
+  const preloaded = document.getElementById("timelineImage");
+  if (preloaded && preloaded.complete && preloaded.naturalWidth > 0) {
+    img = preloaded;
+    loaded = true;
+  }
   /* Try loading the infographic image — first without crossOrigin (same-origin),
      then with crossOrigin as fallback for CDN-hosted assets */
   async function tryLoadImage(useCrossOrigin) {
@@ -501,11 +508,11 @@ async function drawTimelineCanvas() {
     return img;
   }
 
-  let loaded = false;
-  let img = null;
   try {
-    img = await tryLoadImage(false);
-    loaded = true;
+    if (!loaded) {
+      img = await tryLoadImage(false);
+      loaded = true;
+    }
   } catch (_) {
     try {
       img = await tryLoadImage(true);
@@ -1877,6 +1884,8 @@ function setGuideMode(active) {
   if (cameraRig) cameraRig.setAttribute("keyboard-walk", `speed: ${active ? 0 : 4.65}`);
   if (mainCursor) mainCursor.setAttribute("raycaster", active ? "objects: .guide-disabled" : "objects: .clickable, .teleportable");
   if (mainCamera) mainCamera.setAttribute("look-controls", `touchEnabled: true; mouseEnabled: true; magicWindowTrackingEnabled: ${(!active && hasEnteredRoom) ? "true" : "false"}`);
+  const stopBtn = document.getElementById('guideStopBtn');
+  if (stopBtn) stopBtn.hidden = !active;
   const skipBtn = document.getElementById('guideSkipBtn');
   if (skipBtn) skipBtn.hidden = !active;
   const skipFloating = document.getElementById('guideSkipFloating');
@@ -1935,6 +1944,27 @@ function skipToNextGuideStop() {
     btn.disabled = true;
     setTimeout(() => { btn.disabled = false; }, 700);
   }
+}
+
+function stopGuideTour() {
+  if (!guideTourRunning) return;
+  guideTourRunning = false;
+  guideTourStarted = false;
+  guideSkipFlag = null;
+  if (guideNarrationAudio) {
+    try { guideNarrationAudio.pause(); } catch (_) {}
+    try { guideNarrationAudio.dispatchEvent(new Event('ended')); } catch (_) {}
+  }
+  closeArtifact();
+  closeInfographic();
+  if (newspaperView && !newspaperView.classList.contains('overlay--hidden')) closeNewspaper();
+  hideGuideStatus();
+  setGuideMode(false);
+  if (introToggle) {
+    introToggle.hidden = false;
+    updateIntroToggle();
+  }
+  if (audioState.enabled) ensureAmbientAudioStarted();
 }
 
 function playGuideNarration(stop) {
@@ -2237,7 +2267,7 @@ async function startGuideExperience() {
   _unlockAudio();
   showAssetLoader();
   try {
-    await waitForAllAssets(30000);
+    await waitForAllAssets(60000);
   } catch (err) {
     updateAssetLoaderMessage('Một số tài nguyên chưa tải xong. Vui lòng tải lại trang hoặc chờ thêm.');
     console.warn('[Asset Loader] waitForAllAssets failed:', err);
@@ -2254,7 +2284,7 @@ async function startFreeExperience() {
   _unlockAudio();
   showAssetLoader();
   try {
-    await waitForAllAssets(30000);
+    await waitForAllAssets(60000);
   } catch (err) {
     updateAssetLoaderMessage('Một số tài nguyên chưa tải xong. Vui lòng tải lại trang hoặc chờ thêm.');
     console.warn('[Asset Loader] waitForAllAssets failed:', err);
@@ -2371,6 +2401,9 @@ document.addEventListener("DOMContentLoaded", () => {
   if (guideTourBtn) {
     guideTourBtn.addEventListener("click", startGuideExperience);
   }
+  // Guide stop button
+  const guideStopBtn = document.getElementById('guideStopBtn');
+  if (guideStopBtn) guideStopBtn.addEventListener('click', (e) => { e.preventDefault(); stopGuideTour(); }, false);
   // Guide skip button (top bar)
   const guideSkipBtn = document.getElementById('guideSkipBtn');
   if (guideSkipBtn) guideSkipBtn.addEventListener('click', (e) => { e.preventDefault(); skipToNextGuideStop(); }, false);
