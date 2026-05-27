@@ -457,7 +457,7 @@ const GUIDE_MAX_MOVE_MS = 4600;
 const GUIDE_TOUR_STOPS = [
   { key: "intro", label: "Vị trí bắt đầu", x: 0, z: 7.0, lookAt: { x: 0, y: 1.85, z: 0 }, audio: "./audio/guide-01.mp3", fallbackMs: 30000, open: null },
   { key: "newspaper", label: "Báo Việt Nam News", x: 0, z: 1.0, lookAt: { x: 0, y: 2.25, z: 3.35 }, noMove: true, audio: "./audio/guide-02.mp3", fallbackMs: 41000, open: "newspaper-overlay" },
-  { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -7.5, z: 2.8, lookAt: { x: -6.0, y: 1.06, z: 3.27 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
+  { key: "timeline", label: "Dòng thời gian đại dịch COVID tại Việt Nam", x: -8.4, z: 4.0, lookAt: { x: -6.2, y: 1.06, z: 3.41 }, audio: "./audio/guide-03.mp3", fallbackMs: 24000, open: "artifact" },
   { key: "painting-cluster", label: "Tranh treo tường", x: 2.5, z: -1.32, lookAt: { x: 8.78, y: 1.90, z: -1.32 }, rotation: { x: 0, y: -90, z: 0 }, audio: "./audio/guide-04.mp3", fallbackMs: 17000, open: "painting-tour", subStops: [
     { key: "painting-gold",    label: "Thích nghi", lookAt: { x: 8.78, y: 1.42, z: 2.65 } },
     { key: "painting-ember",   label: "Dấn thân",  lookAt: { x: 8.78, y: 2.66, z: 0.95 } },
@@ -1876,7 +1876,7 @@ function setGuideMode(active) {
   if (introToggle) introToggle.hidden = active;
   if (cameraRig) cameraRig.setAttribute("keyboard-walk", `speed: ${active ? 0 : 4.65}`);
   if (mainCursor) mainCursor.setAttribute("raycaster", active ? "objects: .guide-disabled" : "objects: .clickable, .teleportable");
-  if (mainCamera) mainCamera.setAttribute("look-controls", `touchEnabled: ${active ? "false" : "true"}; mouseEnabled: ${active ? "false" : "true"}; magicWindowTrackingEnabled: ${(!active && hasEnteredRoom) ? "true" : "false"}`);
+  if (mainCamera) mainCamera.setAttribute("look-controls", `touchEnabled: true; mouseEnabled: true; magicWindowTrackingEnabled: ${(!active && hasEnteredRoom) ? "true" : "false"}`);
   const skipBtn = document.getElementById('guideSkipBtn');
   if (skipBtn) skipBtn.hidden = !active;
   const skipFloating = document.getElementById('guideSkipFloating');
@@ -2165,9 +2165,15 @@ async function runGuideTour() {
     audioState.audioElement.pause();
     audioState.audioElement.volume = 0;
   }
-  // Start from guide start
+  // Start from guide start and reset the viewer orientation
   guideCurrentIndex = 0;
-  if (cameraRig) cameraRig.object3D.position.set(GUIDE_START.x, 1.6, GUIDE_START.z);
+  if (cameraRig) {
+    cameraRig.object3D.position.set(GUIDE_START.x, 1.6, GUIDE_START.z);
+    cameraRig.setAttribute("rotation", "0 0 0");
+  }
+  if (mainCamera) {
+    mainCamera.setAttribute("rotation", "0 0 0");
+  }
   await waitMs(250);
 
   const totalStops = GUIDE_TOUR_STOPS.length;
