@@ -976,16 +976,20 @@ async function drawNewspaperCanvas() {
   }
 
   let loaded = false;
-  let img = null;
-  try {
-    img = await tryLoadImage(false);
+  let img = document.getElementById("newspaperImage");
+  if (img && img.complete && img.naturalWidth > 0) {
     loaded = true;
-  } catch (_) {
+  } else {
     try {
-      img = await tryLoadImage(true);
+      img = await tryLoadImage(false);
       loaded = true;
-    } catch (e) {
-      console.warn("[drawNewspaperCanvas] Failed to load newspaper image:", e);
+    } catch (_) {
+      try {
+        img = await tryLoadImage(true);
+        loaded = true;
+      } catch (e) {
+        console.warn("[drawNewspaperCanvas] Failed to load newspaper image:", e);
+      }
     }
   }
 

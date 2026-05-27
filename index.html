@@ -113,7 +113,6 @@
           </label>
           <div class="top-bar__actions">
             <button type="button" class="button button--small" data-action="toggle-audio" id="audioButton">Tắt nhạc</button>
-            <button type="button" class="button button--small" id="guideSkipBtn" hidden>Chuyển đến hiện vật tiếp theo</button>
           </div>
         </div>
       </section>
@@ -176,7 +175,7 @@
         <a-scene renderer="antialias: true; colorManagement: true" background="color: #111111" vr-mode-ui="enabled: true" device-orientation-permission-ui="enabled: false" loading-screen="enabled: false" embedded>
           <a-assets timeout="30000">
             <img id="paperTexture" alt="" src="data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%23f3ead9'/%3E%3Cg fill='none' stroke='%23d3c3a5' stroke-width='1' opacity='.45'%3E%3Cpath d='M0 64h512M0 128h512M0 192h512M0 256h512M0 320h512M0 384h512M0 448h512'/%3E%3Cpath d='M64 0v512M128 0v512M192 0v512M256 0v512M320 0v512M384 0v512M448 0v512'/%3E%3C/g%3E%3C/svg%3E" />
-            <img id="newspaperImage" crossorigin="anonymous" src="./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg" />
+            <img id="newspaperImage" src="./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg" />
             <!-- Fallback newspaper texture drawn on canvas if image fails to load -->
             <canvas id="newspaperCanvas" width="445" height="640"></canvas>
             <!-- newsstand model loaded via URL on entity -->
@@ -273,7 +272,7 @@
               <!-- Frame border right (aligned with plane) -->
               <a-box position="0.53 0.14 0.06" rotation="-18 0 0" width="0.04" height="1.38" depth="0.04" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
               <!-- Newspaper page image on a fixed front surface (plane slightly forward) -->
-              <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 0.14 0.02" rotation="-18 0 0" width="0.96" height="1.40" material="src: #newspaperImage; shader: flat; side: double" shadow="cast: true"></a-plane>
+              <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 0.14 0.02" rotation="-18 0 0" width="0.96" height="1.40" material="src: #newspaperCanvas; shader: flat; side: double" shadow="cast: true"></a-plane>
             </a-entity>
             <!-- Spotlight on display -->
             <a-entity light="type: spot; color: #fff5e0; intensity: 1.8; angle: 35; penumbra: 0.6; decay: 1.5; distance: 5" position="0 3.75 0.85" rotation="-35 0 0"></a-entity>
