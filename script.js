@@ -1112,21 +1112,60 @@ function ensureNewspaperTexture() {
   const imageSrc = './viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg';
   if (!artifact) return;
 
-  const apply = () => {
+  const THREE = (typeof AFRAME !== 'undefined' && AFRAME.THREE) ? AFRAME.THREE : window.THREE;
+  if (!THREE) { console.warn('[ensureNewspaperTexture] THREE not available yet'); return; }
+
+  const loader = new THREE.TextureLoader();
+  try { if (loader.setCrossOrigin) loader.setCrossOrigin('anonymous'); } catch (_) {}
+
+  let pendingTex = null;
+  let applied = false;
+
+  const applyToMesh = (tex) => {
+    const mesh = artifact.getObject3D && artifact.getObject3D('mesh');
+    if (!mesh || !mesh.material) return false;
     try {
-      artifact.setAttribute('material', `src: url(${imageSrc}); shader: flat; side: double`);
+      if ('colorSpace' in tex && THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
+      if ('encoding' in tex && THREE.sRGBEncoding) tex.encoding = THREE.sRGBEncoding;
+      tex.needsUpdate = true;
+      mesh.material.map = tex;
+      mesh.material.needsUpdate = true;
+      console.log('[ensureNewspaperTexture] applied texture to newspaper mesh');
       return true;
     } catch (e) {
+      console.warn('[ensureNewspaperTexture] applyToMesh error', e);
       return false;
     }
   };
 
-  if (apply()) return;
+  loader.load(imageSrc, (tex) => {
+    pendingTex = tex;
+    // try immediate apply; if mesh not ready, a listener/interval will handle it
+    if (!applyToMesh(tex)) {
+      try { artifact.setAttribute('material', `src: url(${imageSrc}); shader: flat; side: double`); console.log('[ensureNewspaperTexture] fallback setAttribute used'); } catch (_) {}
+    }
+  }, undefined, (err) => {
+    console.warn('[ensureNewspaperTexture] TextureLoader error', err);
+    try { artifact.setAttribute('material', `src: url(${imageSrc}); shader: flat; side: double`); } catch (_) {}
+  });
+
+  const tryApplyLater = () => {
+    if (applied) return;
+    if (pendingTex && applyToMesh(pendingTex)) {
+      applied = true;
+      clearInterval(iv);
+      artifact.removeEventListener('object3dset', tryApplyLater);
+    }
+  };
+
+  artifact.addEventListener && artifact.addEventListener('object3dset', tryApplyLater);
+
   let attempts = 0;
   const iv = setInterval(() => {
-    if (apply()) { clearInterval(iv); return; }
+    if (applied) { clearInterval(iv); return; }
+    tryApplyLater();
     attempts++;
-    if (attempts > 12) clearInterval(iv);
+    if (attempts > 12) { clearInterval(iv); }
   }, 500);
 }
 
