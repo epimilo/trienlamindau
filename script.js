@@ -959,52 +959,10 @@ async function drawNewspaperCanvas() {
   const artifact = document.getElementById("newspaperArtifact");
   if (!canvas) return;
 
-  const imageSrc = "./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg";
-  /* Try loading the image — first without crossOrigin (same-origin works best),
-     then with crossOrigin as fallback for CDN-hosted assets */
-  async function tryLoadImage(useCrossOrigin) {
-    const img = new Image();
-    if (useCrossOrigin) img.crossOrigin = "anonymous";
-    img.decoding = "async";
-    img.src = imageSrc;
-    if (img.decode) {
-      await img.decode();
-    } else {
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-    }
-    return img;
-  }
-
-  let loaded = false;
-  let img = document.getElementById("newspaperImage");
-  if (img && img.complete && img.naturalWidth > 0) {
-    loaded = true;
-  } else {
-    try {
-      img = await tryLoadImage(false);
-      loaded = true;
-    } catch (_) {
-      try {
-        img = await tryLoadImage(true);
-        loaded = true;
-      } catch (e) {
-        console.warn("[drawNewspaperCanvas] Failed to load newspaper image:", e);
-      }
-    }
-  }
-
   const ctx = canvas.getContext("2d");
   const W = canvas.width, H = canvas.height;
 
-  if (loaded) {
-    /* Draw the actual newspaper image onto the canvas */
-    ctx.clearRect(0, 0, W, H);
-    ctx.drawImage(img, 0, 0, W, H);
-  } else {
-    /* Fallback: draw a placeholder newspaper look */
+  const drawFallback = () => {
     ctx.fillStyle = "#f3ead9";
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = "#3b2a14";
@@ -1021,6 +979,42 @@ async function drawNewspaperCanvas() {
       const y = 120 + i * 40;
       ctx.fillRect(30, y, W - 60, 20);
     }
+  };
+
+  drawFallback();
+
+  const imageSrc = "./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg";
+  const loadImage = (src, useCrossOrigin) => new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('load-timeout')), 5000);
+    const img = new Image();
+    if (useCrossOrigin) img.crossOrigin = "anonymous";
+    img.decoding = "async";
+    img.onload = () => { clearTimeout(timer); resolve(img); };
+    img.onerror = () => { clearTimeout(timer); reject(new Error('load-failed')); };
+    img.src = src;
+  });
+
+  let loaded = false;
+  let img = document.getElementById("newspaperImage");
+  if (img && img.complete && img.naturalWidth > 0) {
+    loaded = true;
+  } else {
+    try {
+      img = await loadImage(imageSrc, false);
+      loaded = true;
+    } catch (_) {
+      try {
+        img = await loadImage(imageSrc, true);
+        loaded = true;
+      } catch (e) {
+        console.warn("[drawNewspaperCanvas] Failed to load newspaper image:", e);
+      }
+    }
+  }
+
+  if (loaded && img) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.drawImage(img, 0, 0, W, H);
   }
 
   /* Apply the canvas texture to the A-Frame plane */
@@ -1028,13 +1022,11 @@ async function drawNewspaperCanvas() {
     const applyCanvasTexture = () => {
       const mesh = artifact.getObject3D("mesh");
       if (mesh && mesh.material) {
-        /* Create texture from canvas */
         const texture = new AFRAME.THREE.CanvasTexture(canvas);
         texture.colorSpace = AFRAME.THREE.SRGBColorSpace;
         texture.needsUpdate = true;
         mesh.material.map = texture;
         mesh.material.needsUpdate = true;
-        // Also set the entity's material attribute so A-Frame knows the src
         try {
           artifact.setAttribute('material', 'src: #newspaperCanvas; shader: flat; side: double');
         } catch (_) {}
@@ -1044,7 +1036,6 @@ async function drawNewspaperCanvas() {
     };
 
     if (!applyCanvasTexture()) {
-      /* Wait for the entity to be loaded */
       const tryApply = () => {
         if (applyCanvasTexture()) {
           artifact.removeEventListener("loaded", tryApply);
@@ -1055,17 +1046,15 @@ async function drawNewspaperCanvas() {
       artifact.addEventListener("object3dset", tryApply);
       setTimeout(applyCanvasTexture, 1500);
       setTimeout(applyCanvasTexture, 4000);
-        // In some cases A-Frame or other code may replace the mesh/material later.
-        // Retry periodically a few times to ensure the canvas texture sticks.
-        let retryAttempts = 0;
-        const retryInterval = setInterval(() => {
-          if (applyCanvasTexture()) {
-            clearInterval(retryInterval);
-            return;
-          }
-          retryAttempts++;
-          if (retryAttempts > 6) clearInterval(retryInterval);
-        }, 1000);
+      let retryAttempts = 0;
+      const retryInterval = setInterval(() => {
+        if (applyCanvasTexture()) {
+          clearInterval(retryInterval);
+          return;
+        }
+        retryAttempts++;
+        if (retryAttempts > 6) clearInterval(retryInterval);
+      }, 1000);
     }
   }
 }
@@ -1214,7 +1203,7 @@ async function initCanvasTextures() {
   ]);
 
   /* Draw newspaper image onto canvas as fallback / primary texture source */
-  drawNewspaperCanvas();
+  await drawNewspaperCanvas();
 
   if (!paintingResults[0]) drawPaintingDawn();
   if (!paintingResults[1]) drawPaintingEmber();
@@ -2398,7 +2387,8 @@ document.addEventListener("DOMContentLoaded", () => {
     guideSkipFloating.title = 'Chuyển đến hiện vật tiếp theo (Phím N)';
     guideSkipFloating.textContent = '→';
     guideSkipFloating.style.display = 'none';
-    document.body.appendChild(guideSkipFloating);
+    const skipParent = appShell || document.body;
+    skipParent.appendChild(guideSkipFloating);
     guideSkipFloating.addEventListener('click', (e) => { e.preventDefault(); skipToNextGuideStop(); }, false);
   }
 
