@@ -2261,6 +2261,7 @@ async function startFreeExperience() {
   }
   hideAssetLoader();
   prepareRoomEntry({ guide: false });
+  setGuideMode(false);
   if (isMobileDevice) await enterFullscreenOnMobile();
   /* Start ambient background music in free exploration mode */
   ensureAmbientAudioStarted();
