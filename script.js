@@ -1017,45 +1017,58 @@ async function drawNewspaperCanvas() {
     ctx.drawImage(img, 0, 0, W, H);
   }
 
-  /* Apply the canvas texture to the A-Frame plane */
-  if (artifact) {
-    const applyCanvasTexture = () => {
-      const mesh = artifact.getObject3D("mesh");
-      if (mesh && mesh.material) {
-        const texture = new AFRAME.THREE.CanvasTexture(canvas);
-        texture.colorSpace = AFRAME.THREE.SRGBColorSpace;
-        texture.needsUpdate = true;
-        mesh.material.map = texture;
-        mesh.material.needsUpdate = true;
-        try {
-          artifact.setAttribute('material', 'src: #newspaperCanvas; shader: flat; side: double');
-        } catch (_) {}
-        return true;
-      }
-      return false;
-    };
-
-    if (!applyCanvasTexture()) {
-      const tryApply = () => {
-        if (applyCanvasTexture()) {
-          artifact.removeEventListener("loaded", tryApply);
-          artifact.removeEventListener("object3dset", tryApply);
-        }
-      };
-      artifact.addEventListener("loaded", tryApply);
-      artifact.addEventListener("object3dset", tryApply);
-      setTimeout(applyCanvasTexture, 1500);
-      setTimeout(applyCanvasTexture, 4000);
-      let retryAttempts = 0;
-      const retryInterval = setInterval(() => {
-        if (applyCanvasTexture()) {
-          clearInterval(retryInterval);
-          return;
-        }
-        retryAttempts++;
-        if (retryAttempts > 6) clearInterval(retryInterval);
-      }, 1000);
+  const applyCanvasTexture = () => {
+    if (!artifact) return false;
+    const mesh = artifact.getObject3D("mesh");
+    if (mesh && mesh.material) {
+      const texture = new AFRAME.THREE.CanvasTexture(canvas);
+      texture.colorSpace = AFRAME.THREE.SRGBColorSpace;
+      texture.needsUpdate = true;
+      mesh.material.map = texture;
+      mesh.material.needsUpdate = true;
+      try {
+        artifact.setAttribute('material', 'src: #newspaperCanvas; shader: flat; side: double');
+      } catch (_) {}
+      return true;
     }
+    return false;
+  };
+
+  const applyImageTexture = () => {
+    if (!artifact || !loaded || !img) return false;
+    const mesh = artifact.getObject3D("mesh");
+    if (mesh && mesh.material) {
+      try {
+        artifact.setAttribute('material', 'src: #newspaperImage; shader: flat; side: double');
+      } catch (_) {}
+      return true;
+    }
+    return false;
+  };
+
+  const tryApply = () => {
+    if (loaded && img) {
+      return applyImageTexture() || applyCanvasTexture();
+    }
+    return applyCanvasTexture();
+  };
+
+  if (!tryApply()) {
+    artifact.addEventListener("loaded", tryApply);
+    artifact.addEventListener("object3dset", tryApply);
+    setTimeout(tryApply, 1500);
+    setTimeout(tryApply, 4000);
+    let retryAttempts = 0;
+    const retryInterval = setInterval(() => {
+      if (tryApply()) {
+        clearInterval(retryInterval);
+        return;
+      }
+      retryAttempts++;
+      if (retryAttempts > 6) {
+        clearInterval(retryInterval);
+      }
+    }, 1000);
   }
 }
 
@@ -1854,11 +1867,19 @@ function setGuideMode(active) {
   if (mainCursor) mainCursor.setAttribute("raycaster", active ? "objects: .guide-disabled" : "objects: .clickable, .teleportable");
   if (mainCamera) mainCamera.setAttribute("look-controls", `touchEnabled: true; mouseEnabled: true; magicWindowTrackingEnabled: ${(!active && hasEnteredRoom) ? "true" : "false"}`);
   const stopBtn = document.getElementById('guideStopBtn');
-  if (stopBtn) stopBtn.hidden = !active;
+  if (stopBtn) {
+    stopBtn.hidden = !active;
+    stopBtn.style.display = active ? '' : 'none';
+  }
   const skipBtn = document.getElementById('guideSkipBtn');
-  if (skipBtn) skipBtn.hidden = !active;
+  if (skipBtn) {
+    skipBtn.hidden = !active;
+    skipBtn.style.display = active ? '' : 'none';
+  }
   const skipFloating = document.getElementById('guideSkipFloating');
   if (skipFloating) skipFloating.style.display = active ? 'flex' : 'none';
+  const stopFloating = document.getElementById('guideStopFloating');
+  if (stopFloating) stopFloating.style.display = active ? 'flex' : 'none';
 }
 
 function prepareRoomEntry({ guide = false } = {}) {
@@ -2390,6 +2411,20 @@ document.addEventListener("DOMContentLoaded", () => {
     const skipParent = appShell || document.body;
     skipParent.appendChild(guideSkipFloating);
     guideSkipFloating.addEventListener('click', (e) => { e.preventDefault(); skipToNextGuideStop(); }, false);
+  }
+
+  // Floating stop button for guide mode
+  let guideStopFloating = document.getElementById('guideStopFloating');
+  if (!guideStopFloating) {
+    guideStopFloating = document.createElement('button');
+    guideStopFloating.id = 'guideStopFloating';
+    guideStopFloating.className = 'button button--round guide-stop-button';
+    guideStopFloating.title = 'Dừng hướng dẫn';
+    guideStopFloating.textContent = '×';
+    guideStopFloating.style.display = 'none';
+    const stopParent = appShell || document.body;
+    stopParent.appendChild(guideStopFloating);
+    guideStopFloating.addEventListener('click', (e) => { e.preventDefault(); stopGuideTour(); }, false);
   }
 
   // Also keyboard support: press N to skip to next guide stop

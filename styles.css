@@ -770,6 +770,26 @@ body.is-mobile.is-rotate-lock .intro-splash {
   z-index: 100001;
 }
 #guideSkipFloating:active { transform: scale(0.96); }
+
+#guideStopFloating {
+  position: fixed;
+  right: 18px;
+  bottom: 156px;
+  width: 52px;
+  height: 52px;
+  border-radius: 28px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  background: linear-gradient(180deg,#ff5566,#d13238);
+  color: #ffffff;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  border: none;
+  cursor: pointer;
+  z-index: 100001;
+}
+#guideStopFloating:active { transform: scale(0.96); }
 #guideSkipFloating[disabled] { opacity: 0.5; pointer-events: none; }
 
 .artifact-figure {
