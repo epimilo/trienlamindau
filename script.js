@@ -1055,6 +1055,17 @@ async function drawNewspaperCanvas() {
       artifact.addEventListener("object3dset", tryApply);
       setTimeout(applyCanvasTexture, 1500);
       setTimeout(applyCanvasTexture, 4000);
+        // In some cases A-Frame or other code may replace the mesh/material later.
+        // Retry periodically a few times to ensure the canvas texture sticks.
+        let retryAttempts = 0;
+        const retryInterval = setInterval(() => {
+          if (applyCanvasTexture()) {
+            clearInterval(retryInterval);
+            return;
+          }
+          retryAttempts++;
+          if (retryAttempts > 6) clearInterval(retryInterval);
+        }, 1000);
     }
   }
 }
