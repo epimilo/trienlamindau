@@ -1106,6 +1106,31 @@ async function initCanvasTextures() {
   try { window.canvasTexturesReady = true; document.dispatchEvent(new Event('canvasTexturesReady')); } catch (_) { window.canvasTexturesReady = true; }
 }
 
+/* Ensure newspaper plane uses the direct image URL as texture (retry until applied) */
+function ensureNewspaperTexture() {
+  const artifact = document.getElementById('newspaperArtifact');
+  const imageSrc = './viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg';
+  if (!artifact) return;
+
+  const apply = () => {
+    try {
+      artifact.setAttribute('material', `src: url(${imageSrc}); shader: flat; side: double`);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
+  if (apply()) return;
+  let attempts = 0;
+  const iv = setInterval(() => {
+    if (apply()) { clearInterval(iv); return; }
+    attempts++;
+    if (attempts > 12) clearInterval(iv);
+  }, 500);
+}
+
+
 /* ════════════════════════════════════════
    INTRO SPLASH
 ════════════════════════════════════════ */
@@ -2259,6 +2284,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
     await initCanvasTextures();
+    // Ensure newspaper plane uses direct image URL (helps with A-Frame load timing)
+    ensureNewspaperTexture();
   })();
 
   // Cursor ring
