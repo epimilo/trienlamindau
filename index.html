@@ -188,8 +188,6 @@
             <a-asset-item id="hazmatCharacterModel" src="./hazmat-character-fixed.glb"></a-asset-item>
             <a-asset-item id="cityBuildingsModel" src="./low-poly_city_buildings.glb"></a-asset-item>
             <a-asset-item id="paintingFramesModel" src="./Hitem3d-1778980352426.compressed.glb"></a-asset-item>
-            <!-- Fallback newspaper texture drawn on canvas if image fails to load -->
-            <canvas id="newspaperCanvas" width="445" height="640"></canvas>
             <!-- newsstand model loaded via URL on entity -->
             <canvas id="timelineCanvas" width="1440" height="810"></canvas>
             <canvas id="archiveCanvas" width="512" height="256"></canvas>
@@ -284,7 +282,7 @@
               <!-- Frame border right (aligned with plane) -->
               <a-box position="0.53 0.14 0.06" rotation="-18 0 0" width="0.04" height="1.38" depth="0.04" material="color: #a7a7a7; roughness: 0.4; metalness: 0.55"></a-box>
               <!-- Newspaper page image on a fixed front surface (plane slightly forward) -->
-              <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 0.14 0.02" rotation="-18 0 0" width="0.96" height="1.40" material="src: #newspaperCanvas; shader: flat; side: double" shadow="cast: true"></a-plane>
+              <a-plane id="newspaperArtifact" class="clickable" data-artifact="newspaper" data-label="Việt Nam News số 30/03/2020" position="0 0.14 0.02" rotation="-18 0 0" width="0.96" height="1.40" material="src: #newspaperImage; shader: flat; side: double" shadow="cast: true"></a-plane>
             </a-entity>
             <!-- Spotlight on display -->
             <a-entity light="type: spot; color: #fff5e0; intensity: 1.8; angle: 35; penumbra: 0.6; decay: 1.5; distance: 5" position="0 3.75 0.85" rotation="-35 0 0"></a-entity>

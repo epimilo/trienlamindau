@@ -954,124 +954,6 @@ function drawPaintingGold() {
   ctx.fillText("Ánh giấy — Lưu dấu", W / 2, H - 22);
 }
 
-async function drawNewspaperCanvas() {
-  const canvas = document.getElementById("newspaperCanvas");
-  const artifact = document.getElementById("newspaperArtifact");
-  if (!canvas) return;
-
-  const ctx = canvas.getContext("2d");
-  const W = canvas.width, H = canvas.height;
-
-  const drawFallback = () => {
-    ctx.fillStyle = "#f3ead9";
-    ctx.fillRect(0, 0, W, H);
-    ctx.fillStyle = "#3b2a14";
-    ctx.font = "bold 28px serif";
-    ctx.textAlign = "center";
-    ctx.fillText("VIỆT NAM NEWS", W / 2, 60);
-    ctx.font = "16px serif";
-    ctx.fillText("Số 30/03/2020", W / 2, 90);
-    ctx.strokeStyle = "#3b2a14";
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(30, 105); ctx.lineTo(W - 30, 105); ctx.stroke();
-    for (let i = 0; i < 12; i++) {
-      ctx.fillStyle = `rgba(59,42,20,${0.15 + Math.random() * 0.15})`;
-      const y = 120 + i * 40;
-      ctx.fillRect(30, y, W - 60, 20);
-    }
-  };
-
-  drawFallback();
-
-  const imageSrc = "./viet-nam-news-dung-xuat-ban-mot-to-bao-in-vi-nguoi-nhiem-covid-19.jpg";
-  const loadImage = (src, useCrossOrigin) => new Promise((resolve, reject) => {
-    const timer = setTimeout(() => reject(new Error('load-timeout')), 5000);
-    const img = new Image();
-    if (useCrossOrigin) img.crossOrigin = "anonymous";
-    img.decoding = "async";
-    img.onload = () => { clearTimeout(timer); resolve(img); };
-    img.onerror = () => { clearTimeout(timer); reject(new Error('load-failed')); };
-    img.src = src;
-  });
-
-  let loaded = false;
-  let img = document.getElementById("newspaperImage");
-  if (img && img.complete && img.naturalWidth > 0) {
-    loaded = true;
-  } else {
-    try {
-      img = await loadImage(imageSrc, false);
-      loaded = true;
-    } catch (_) {
-      try {
-        img = await loadImage(imageSrc, true);
-        loaded = true;
-      } catch (e) {
-        console.warn("[drawNewspaperCanvas] Failed to load newspaper image:", e);
-      }
-    }
-  }
-
-  if (loaded && img) {
-    ctx.clearRect(0, 0, W, H);
-    ctx.drawImage(img, 0, 0, W, H);
-  }
-
-  const applyCanvasTexture = () => {
-    if (!artifact) return false;
-    const mesh = artifact.getObject3D("mesh");
-    if (mesh && mesh.material) {
-      const texture = new AFRAME.THREE.CanvasTexture(canvas);
-      texture.colorSpace = AFRAME.THREE.SRGBColorSpace;
-      texture.needsUpdate = true;
-      mesh.material.map = texture;
-      mesh.material.needsUpdate = true;
-      try {
-        artifact.setAttribute('material', 'src: #newspaperCanvas; shader: flat; side: double');
-      } catch (_) {}
-      return true;
-    }
-    return false;
-  };
-
-  const applyImageTexture = () => {
-    if (!artifact || !loaded || !img) return false;
-    const mesh = artifact.getObject3D("mesh");
-    if (mesh && mesh.material) {
-      try {
-        artifact.setAttribute('material', 'src: #newspaperImage; shader: flat; side: double');
-      } catch (_) {}
-      return true;
-    }
-    return false;
-  };
-
-  const tryApply = () => {
-    if (loaded && img) {
-      return applyImageTexture() || applyCanvasTexture();
-    }
-    return applyCanvasTexture();
-  };
-
-  if (!tryApply()) {
-    artifact.addEventListener("loaded", tryApply);
-    artifact.addEventListener("object3dset", tryApply);
-    setTimeout(tryApply, 1500);
-    setTimeout(tryApply, 4000);
-    let retryAttempts = 0;
-    const retryInterval = setInterval(() => {
-      if (tryApply()) {
-        clearInterval(retryInterval);
-        return;
-      }
-      retryAttempts++;
-      if (retryAttempts > 6) {
-        clearInterval(retryInterval);
-      }
-    }, 1000);
-  }
-}
-
 async function drawPaintingPhoto(canvasId, imageSrc) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || !imageSrc) return false;
@@ -1214,9 +1096,6 @@ async function initCanvasTextures() {
     drawPaintingPhoto("paintingEchoCanvas", "./painting-4-lan-xa-framed.jpg"),
     drawPaintingPhoto("paintingGoldCanvas", "./painting-5-thich-nghi-framed.jpg")
   ]);
-
-  /* Draw newspaper image onto canvas as fallback / primary texture source */
-  await drawNewspaperCanvas();
 
   if (!paintingResults[0]) drawPaintingDawn();
   if (!paintingResults[1]) drawPaintingEmber();
