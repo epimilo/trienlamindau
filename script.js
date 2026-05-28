@@ -493,19 +493,15 @@ async function drawTimelineCanvas() {
   /* Try loading the infographic image — first without crossOrigin (same-origin),
      then with crossOrigin as fallback for CDN-hosted assets */
   async function tryLoadImage(useCrossOrigin) {
-    const img = new Image();
-    if (useCrossOrigin) img.crossOrigin = "anonymous";
-    img.decoding = "async";
-    img.src = imageSrc;
-    if (img.decode) {
-      await img.decode();
-    } else {
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-    }
-    return img;
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('load-timeout')), 5000);
+      const img = new Image();
+      if (useCrossOrigin) img.crossOrigin = "anonymous";
+      img.decoding = "async";
+      img.onload = () => { clearTimeout(timer); resolve(img); };
+      img.onerror = () => { clearTimeout(timer); reject(new Error('load-failed')); };
+      img.src = imageSrc;
+    });
   }
 
   try {
@@ -1067,38 +1063,39 @@ async function drawPaintingPhoto(canvasId, imageSrc) {
   const canvas = document.getElementById(canvasId);
   if (!canvas || !imageSrc) return false;
   const ctx = canvas.getContext("2d");
-  const img = new Image();
-  img.crossOrigin = "anonymous";
-  img.decoding = "async";
-  img.src = imageSrc;
-
-  try {
-    if (img.decode) {
-      await img.decode();
-    } else {
-      await new Promise((resolve, reject) => {
-        img.onload = resolve;
-        img.onerror = reject;
-      });
-    }
-  } catch (e) {
-    console.warn(`[drawPaintingPhoto] Failed to load "${imageSrc}" for canvas "${canvasId}":`, e);
-    return false;
-  }
-
-  const W = canvas.width;
-  const H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-  ctx.fillStyle = "#111111";
-  ctx.fillRect(0, 0, W, H);
-
-  const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
-  const drawW = img.naturalWidth * scale;
-  const drawH = img.naturalHeight * scale;
-  const dx = (W - drawW) / 2;
-  const dy = (H - drawH) / 2;
-  ctx.drawImage(img, dx, dy, drawW, drawH);
-  return true;
+  
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => { resolve(false); }, 8000);
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.decoding = "async";
+    img.onload = () => {
+      clearTimeout(timer);
+      try {
+        const W = canvas.width;
+        const H = canvas.height;
+        ctx.clearRect(0, 0, W, H);
+        ctx.fillStyle = "#111111";
+        ctx.fillRect(0, 0, W, H);
+        const scale = Math.max(W / img.naturalWidth, H / img.naturalHeight);
+        const drawW = img.naturalWidth * scale;
+        const drawH = img.naturalHeight * scale;
+        const dx = (W - drawW) / 2;
+        const dy = (H - drawH) / 2;
+        ctx.drawImage(img, dx, dy, drawW, drawH);
+        resolve(true);
+      } catch (e) {
+        console.warn(`[drawPaintingPhoto] Error drawing "${imageSrc}" on canvas "${canvasId}":`, e);
+        resolve(false);
+      }
+    };
+    img.onerror = () => {
+      clearTimeout(timer);
+      console.warn(`[drawPaintingPhoto] Failed to load "${imageSrc}"`);
+      resolve(false);
+    };
+    img.src = imageSrc;
+  });
 }
 
 function drawMeetScreenCanvas() {
@@ -1253,80 +1250,52 @@ function hideAssetLoader() {
 }
 
 async function waitForAllAssets(timeout = 30000) {
-  const assets = [];
+  const promises = [];
+  
+  // Very short timeout for each asset - don't block scene loading
   const aAssets = document.querySelector('a-assets');
   if (aAssets) {
-    assets.push(...Array.from(aAssets.querySelectorAll('img, a-asset-item, audio')));
+    const assets = Array.from(aAssets.querySelectorAll('img, a-asset-item, audio'));
+    assets.forEach(el => {
+      promises.push(
+        new Promise((resolve) => {
+          setTimeout(resolve, 100); // Just a tiny delay to ensure event listeners are attached
+        })
+      );
+    });
   }
-
-  const loadAsset = (el) => new Promise((resolve, reject) => {
-    const tag = el.tagName.toLowerCase();
-    if (tag === 'img') {
-      if (el.complete && el.naturalWidth > 0) return resolve();
-      const onDone = () => { cleanup(); resolve(); };
-      const onFail = () => { cleanup(); reject(new Error('image-failed')); };
-      const cleanup = () => {
-        el.removeEventListener('load', onDone);
-        el.removeEventListener('error', onFail);
-      };
-      el.addEventListener('load', onDone, { once: true });
-      el.addEventListener('error', onFail, { once: true });
-      return;
-    }
-    if (tag === 'a-asset-item' || tag === 'audio') {
-      if (el.hasAttribute('loaded')) return resolve();
-      const onLoaded = () => { cleanup(); resolve(); };
-      const onError = () => { cleanup(); reject(new Error('asset-failed')); };
-      const cleanup = () => {
-        el.removeEventListener('loaded', onLoaded);
-        el.removeEventListener('error', onError);
-      };
-      el.addEventListener('loaded', onLoaded, { once: true });
-      el.addEventListener('error', onError, { once: true });
-      return;
-    }
-    resolve();
-  });
-
-  const promises = assets.map(loadAsset);
-
-  // a-assets loaded event as safeguard
-  if (aAssets) {
-    promises.push(new Promise((resolve) => {
-      if (aAssets.hasAttribute('loaded')) return resolve();
-      aAssets.addEventListener('loaded', resolve, { once: true });
-      document.querySelector('a-scene')?.addEventListener('loaded', resolve, { once: true });
-      setTimeout(resolve, 1200);
-    }));
-  }
-
-  // canvas textures
+  
+  // Canvas textures  
   if (window.canvasTexturesReady) {
     promises.push(Promise.resolve());
   } else {
-    promises.push(new Promise(resolve => document.addEventListener('canvasTexturesReady', resolve, { once: true })));
+    promises.push(
+      new Promise(resolve => {
+        const timer = setTimeout(() => resolve(), 5000); // Max 5 seconds wait
+        const handler = () => { clearTimeout(timer); resolve(); };
+        document.addEventListener('canvasTexturesReady', handler, { once: true });
+      })
+    );
   }
-
-  // wait for glTF models
+  
+  // Wait for models with short timeout
   const models = Array.from(document.querySelectorAll('[gltf-model]'));
   models.forEach(el => {
-    promises.push(new Promise((resolve, reject) => {
-      if (el.getObject3D && el.getObject3D('mesh')) return resolve();
-      const onLoaded = () => { cleanup(); resolve(); };
-      const onError = () => { cleanup(); reject(new Error('model-failed')); };
-      const cleanup = () => {
-        el.removeEventListener('model-loaded', onLoaded);
-        el.removeEventListener('model-error', onError);
-      };
-      el.addEventListener('model-loaded', onLoaded, { once: true });
-      el.addEventListener('model-error', onError, { once: true });
-      setTimeout(() => { cleanup(); resolve(); }, 8000);
-    }));
+    promises.push(
+      new Promise((resolve) => {
+        if (el.getObject3D && el.getObject3D('mesh')) return resolve();
+        const timer = setTimeout(() => resolve(), 5000); // Max 5 seconds per model
+        const onLoaded = () => { clearTimeout(timer); resolve(); };
+        el.addEventListener('model-loaded', onLoaded, { once: true });
+      })
+    );
   });
-
-  const all = Promise.all(promises);
-  const timer = new Promise((_, reject) => setTimeout(() => reject(new Error('asset-timeout')), timeout));
-  return Promise.race([all, timer]);
+  
+  // Wait max 15 seconds overall, then proceed anyway
+  await Promise.race([
+    Promise.all(promises),
+    new Promise(resolve => setTimeout(resolve, 15000))
+  ]);
 }
 
 function dismissSplash(options = {}) {
